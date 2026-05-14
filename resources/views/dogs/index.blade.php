@@ -4,8 +4,8 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Mis Perros') }}
             </h2>
-            <a href="{{ route('dogs.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                + Añadir Perro
+            <a href="{{ route('dogs.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-700 hover:bg-indigo-800 text-white border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm" style="background-color: #4338ca; color: white;">
+                + {{ __('Añadir Perro') }}
             </a>
         </div>
     </x-slot>
@@ -25,29 +25,31 @@
                         <a href="{{ route('dogs.create') }}" class="text-indigo-600 hover:underline mt-2 inline-block">¡Empieza añadiendo uno aquí!</a>
                     </div>
                 @else
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="gap-6" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem;">
                         @foreach($dogs as $dog)
-                            <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                                @if($dog->photo)
-                                    <img src="{{ asset('storage/' . $dog->photo) }}" alt="{{ $dog->name }}" class="w-full h-48 object-cover">
-                                @else
-                                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-                                        <span class="text-gray-400 text-5xl">🐾</span>
-                                    </div>
-                                @endif
-                                <div class="p-4">
+                            <div class="border shadow-sm hover:shadow-md transition bg-white group flex flex-col">
+                                <div class="w-full" style="aspect-ratio: 1/1; overflow: hidden;">
+                                    @if($dog->photo)
+                                        <img src="{{ asset('storage/' . $dog->photo) }}" alt="{{ $dog->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    @else
+                                        <div style="width: 100%; height: 100%; background-color: #f3f4f6; display: flex; align-items: center; justify-content: center;">
+                                            <span style="font-size: 3rem; opacity: 0.3;">🐾</span>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="p-4 text-center border-t">
                                     <h3 class="text-lg font-bold text-gray-900">{{ $dog->name }}</h3>
                                     <p class="text-sm text-gray-600">{{ $dog->breed ?? 'Raza no especificada' }}</p>
                                     <div class="mt-2 flex justify-between items-center">
-                                        <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded">{{ $dog->size ?? 'Tamaño N/A' }}</span>
-                                        <span class="text-xs text-gray-500">{{ $dog->age }} años</span>
+                                        <span class="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-1 font-bold uppercase tracking-wider">{{ $dog->size ?? 'N/A' }}</span>
+                                        <span class="text-xs text-gray-500 font-medium">{{ $dog->age }} años</span>
                                     </div>
-                                    <div class="mt-4 flex gap-2">
-                                        <a href="{{ route('dogs.edit', $dog) }}" class="text-sm text-indigo-600 hover:underline">Editar</a>
+                                    <div class="mt-4 flex justify-center gap-4 border-t pt-3">
+                                        <a href="{{ route('dogs.edit', $dog) }}" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider">Editar</a>
                                         <form action="{{ route('dogs.destroy', $dog) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este perro?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-sm text-red-600 hover:underline">Eliminar</button>
+                                            <button type="submit" class="text-xs font-bold text-red-600 hover:text-red-800 uppercase tracking-wider">Eliminar</button>
                                         </form>
                                     </div>
                                 </div>

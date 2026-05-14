@@ -19,8 +19,19 @@ class Dog extends Model
     /**
      * Get the advertisements for the dog.
      */
+    /**
+     * Get the advertisements for the dog.
+     */
     public function advertisements()
     {
         return $this->hasMany(Advertisement::class);
+    }
+
+    /**
+     * Get the care requests for the dog.
+     */
+    public function careRequests()
+    {
+        return $this->belongsToMany(CareRequest::class);
     }
 }

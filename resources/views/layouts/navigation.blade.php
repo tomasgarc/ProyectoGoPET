@@ -18,6 +18,12 @@
                     <x-nav-link :href="route('dogs.index')" :active="request()->routeIs('dogs.*')">
                         {{ __('Mis Perros') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('care-requests.explore')" :active="request()->routeIs('care-requests.explore')">
+                        {{ __('Peticiones') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('care-requests.index')" :active="request()->routeIs('care-requests.index')">
+                        {{ __('Mis Peticiones') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -75,6 +81,12 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('dogs.index')" :active="request()->routeIs('dogs.*')">
                 {{ __('Mis Perros') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('care-requests.explore')" :active="request()->routeIs('care-requests.explore')">
+                {{ __('Peticiones') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('care-requests.index')" :active="request()->routeIs('care-requests.index')">
+                {{ __('Mis Peticiones') }}
             </x-responsive-nav-link>
         </div>
 

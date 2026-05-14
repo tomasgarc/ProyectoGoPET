@@ -49,8 +49,11 @@ class User extends Authenticatable
     /**
      * Get the advertisements posted by the user.
      */
-    public function advertisements()
+    /**
+     * Get the care requests posted by the user.
+     */
+    public function careRequests()
     {
-        return $this->hasMany(Advertisement::class);
+        return $this->hasMany(CareRequest::class);
     }
 }
