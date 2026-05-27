@@ -190,4 +190,32 @@ class CareRequestController extends Controller
 
         return redirect()->route('care-requests.index')->with('success', 'Petición eliminada correctamente.');
     }
+
+    /**
+     * Display a listing of care requests favorited by the user.
+     */
+    public function favorites()
+    {
+        $favorites = auth()->user()->favoriteCareRequests()
+            ->where('status', 'pending')
+            ->where('end_date', '>=', now()->toDateString())
+            ->with(['dogs', 'user'])
+            ->latest()
+            ->get();
+
+        return view('care_requests.favorites', compact('favorites'));
+    }
+
+    /**
+     * Toggle the favorite status of a care request.
+     */
+    public function toggleFavorite(CareRequest $careRequest)
+    {
+        auth()->user()->favoriteCareRequests()->toggle($careRequest->id);
+
+        $isFavorited = auth()->user()->favoriteCareRequests()->where('care_request_id', $careRequest->id)->exists();
+        $message = $isFavorited ? 'Petición añadida a tus favoritos ❤️' : 'Petición eliminada de tus favoritos 🤍';
+
+        return back()->with('success', $message);
+    }
 }

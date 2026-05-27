@@ -7,6 +7,15 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            @if(session('success'))
+                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg relative mb-6 flex items-center shadow-sm animate-pulse" role="alert">
+                    <svg class="w-5 h-5 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="block sm:inline font-medium text-sm">{{ session('success') }}</span>
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse($careRequests as $request)
                     <div class="bg-white overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 flex flex-col">
@@ -62,10 +71,24 @@
                         </div>
 
                         <!-- Footer / Acciones -->
-                        <div class="p-5 bg-gray-50/30 border-t border-gray-50">
-                            <a href="{{ route('care-requests.show', $request) }}" class="block w-full text-center py-2 bg-white border border-indigo-200 text-indigo-700 font-bold text-sm hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all duration-200 shadow-sm" style="border-width: 2px;">
-                                Ver Detalles y Contactar
+                        <div class="p-5 bg-gray-50/30 border-t border-gray-50 flex items-center gap-3">
+                            <a href="{{ route('care-requests.show', $request) }}" class="flex-grow text-center py-2 bg-white border border-indigo-200 text-indigo-700 font-bold text-sm hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all duration-200 shadow-sm" style="border-width: 2px; border-style: solid;">
+                                Ver Detalles
                             </a>
+                            <form action="{{ route('care-requests.favorite', $request) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="p-2 bg-white border-2 border-gray-200 hover:border-rose-400 hover:bg-rose-50 text-gray-400 hover:text-rose-600 transition-colors shadow-sm focus:outline-none flex items-center justify-center">
+                                    @if($request->isFavoritedBy(auth()->id()))
+                                        <svg class="w-5 h-5 text-rose-600 fill-current" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                    @else
+                                        <svg class="w-5 h-5 text-gray-400 hover:text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                    @endif
+                                </button>
+                            </form>
                         </div>
                     </div>
                 @empty

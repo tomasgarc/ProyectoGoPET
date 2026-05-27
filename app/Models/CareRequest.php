@@ -23,6 +23,16 @@ class CareRequest extends Model
         return $this->belongsToMany(Dog::class);
     }
 
+    public function favoritedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'care_request_favorites')->withTimestamps();
+    }
+
+    public function isFavoritedBy($userId): bool
+    {
+        return $this->favoritedByUsers()->where('user_id', $userId)->exists();
+    }
+
     /**
      * Check if the care request has expired/finalized.
      */

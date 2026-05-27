@@ -15,6 +15,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('dogs', \App\Http\Controllers\DogController::class);
     Route::get('/explore-requests', [\App\Http\Controllers\CareRequestController::class, 'explore'])->name('care-requests.explore');
     Route::get('/care-requests/history', [\App\Http\Controllers\CareRequestController::class, 'history'])->name('care-requests.history');
+    Route::get('/care-requests/favorites', [\App\Http\Controllers\CareRequestController::class, 'favorites'])->name('care-requests.favorites');
+    Route::post('/care-requests/{care_request}/favorite', [\App\Http\Controllers\CareRequestController::class, 'toggleFavorite'])->name('care-requests.favorite');
     Route::post('/care-requests/{care_request}/accept', [\App\Http\Controllers\CareRequestController::class, 'accept'])->name('care-requests.accept');
     Route::resource('care-requests', \App\Http\Controllers\CareRequestController::class);
     

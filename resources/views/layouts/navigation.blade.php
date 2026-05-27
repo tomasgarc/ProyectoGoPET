@@ -27,6 +27,9 @@
                     <x-nav-link :href="route('chats.index')" :active="request()->routeIs('chats.*')">
                         {{ __('Mensajes') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('care-requests.favorites')" :active="request()->routeIs('care-requests.favorites')">
+                        {{ __('Favoritos') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -93,6 +96,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('chats.index')" :active="request()->routeIs('chats.*')">
                 {{ __('Mensajes') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('care-requests.favorites')" :active="request()->routeIs('care-requests.favorites')">
+                {{ __('Favoritos') }}
             </x-responsive-nav-link>
         </div>
 

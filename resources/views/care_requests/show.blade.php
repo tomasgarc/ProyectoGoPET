@@ -56,6 +56,22 @@
                                     {{ $careRequest->getResolvedStatus() === 'pending' ? 'bg-amber-100 text-amber-800 border border-amber-200' : ($careRequest->getResolvedStatus() === 'accepted' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-gray-100 text-gray-800 border border-gray-200') }}">
                                     {{ $careRequest->getStatusLabel() }}
                                 </span>
+                                @if($careRequest->user_id !== auth()->id())
+                                    <form action="{{ route('care-requests.favorite', $careRequest) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="p-1.5 bg-white border border-gray-200 hover:border-rose-400 hover:bg-rose-50 text-gray-400 hover:text-rose-600 transition-colors shadow-sm focus:outline-none flex items-center justify-center">
+                                            @if($careRequest->isFavoritedBy(auth()->id()))
+                                                <svg class="w-4.5 h-4.5 text-rose-600 fill-current" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                </svg>
+                                            @else
+                                                <svg class="w-4.5 h-4.5 text-gray-400 hover:text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                </svg>
+                                            @endif
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                             <p class="text-sm text-gray-500 mt-1.5">Publicada el {{ $careRequest->created_at->format('d/m/Y H:i') }}</p>
                         </div>
@@ -153,15 +169,32 @@
                                     </div>
                                 </div>
                                 @if(!$careRequest->isFinalized())
-                                    <form action="{{ route('chats.start', $careRequest) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-wider shadow-sm transition">
-                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                            </svg>
-                                            {{ __('Enviar Mensaje / Abrir Chat') }}
-                                        </button>
-                                    </form>
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <form action="{{ route('chats.start', $careRequest) }}" method="POST" class="w-full sm:w-auto">
+                                            @csrf
+                                            <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-wider shadow-sm transition">
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                </svg>
+                                                {{ __('Enviar Mensaje / Abrir Chat') }}
+                                            </button>
+                                        </form>
+
+                                        <form action="{{ route('care-requests.favorite', $careRequest) }}" method="POST" class="inline flex-shrink-0">
+                                            @csrf
+                                            <button type="submit" class="p-2.5 bg-white border-2 border-rose-600 hover:bg-rose-50 text-rose-600 transition shadow-sm flex items-center justify-center" title="{{ $careRequest->isFavoritedBy(auth()->id()) ? __('Quitar de Favoritos') : __('Marcar como Favorito') }}">
+                                                @if($careRequest->isFavoritedBy(auth()->id()))
+                                                    <svg class="w-5 h-5 text-rose-600 fill-current" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-5 h-5 text-rose-600 hover:fill-current" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                    </svg>
+                                                @endif
+                                            </button>
+                                        </form>
+                                    </div>
                                 @else
                                     <span class="text-sm font-semibold text-gray-400 italic">{{ __('Petición finalizada') }}</span>
                                 @endif

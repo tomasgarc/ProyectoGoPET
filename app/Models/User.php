@@ -56,4 +56,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(CareRequest::class);
     }
+
+    /**
+     * Get the care requests favorited by the user.
+     */
+    public function favoriteCareRequests()
+    {
+        return $this->belongsToMany(CareRequest::class, 'care_request_favorites')->withTimestamps();
+    }
 }
