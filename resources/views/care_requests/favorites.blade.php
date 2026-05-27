@@ -49,9 +49,7 @@
                             <div class="p-5 border-b border-gray-50 bg-gray-50/50">
                                 <div class="flex justify-between items-start">
                                     <div class="flex items-center space-x-3">
-                                        <div class="w-10 h-10 bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border border-indigo-200">
-                                            {{ substr($request->user->name, 0, 1) }}
-                                        </div>
+                                        <img src="{{ $request->user->avatar_url }}" alt="{{ $request->user->name }}" class="w-10 h-10 rounded-full object-cover border border-gray-250 shadow-sm">
                                         <div>
                                             <p class="text-sm font-bold text-gray-900">{{ $request->user->name }}</p>
                                             <p class="text-xs text-gray-500">Publicado {{ $request->created_at->diffForHumans() }}</p>

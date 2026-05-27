@@ -75,9 +75,7 @@
                         <h3 class="text-[10px] uppercase text-slate-400 font-extrabold tracking-widest mb-4">{{ __('Tu Cuidador Seleccionado') }}</h3>
                         
                         <div class="flex items-center space-x-4">
-                            <div class="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-extrabold rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-indigo-200">
-                                {{ substr($caretaker->name, 0, 1) }}
-                            </div>
+                            <img src="{{ $caretaker->avatar_url }}" alt="{{ $caretaker->name }}" class="w-16 h-16 rounded-2xl object-cover shadow-lg shadow-indigo-200 border border-indigo-105">
                             <div class="flex-grow">
                                 <h4 class="text-lg font-extrabold text-slate-800 tracking-tight">{{ $caretaker->name }}</h4>
                                 <p class="text-sm text-slate-500 font-semibold truncate">{{ $caretaker->email }}</p>

@@ -121,9 +121,7 @@
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     @if($request->acceptedBy)
                                                         <div class="flex items-center space-x-2">
-                                                            <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-[10px]">
-                                                                {{ substr($request->acceptedBy->name, 0, 1) }}
-                                                            </div>
+                                                            <img src="{{ $request->acceptedBy->avatar_url }}" alt="{{ $request->acceptedBy->name }}" class="w-6 h-6 rounded-full object-cover border border-gray-250 shadow-sm">
                                                             <span class="font-medium text-gray-900">{{ $request->acceptedBy->name }}</span>
                                                         </div>
                                                     @else
@@ -183,9 +181,7 @@
                                             <tr class="hover:bg-gray-50/30 transition-colors">
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <div class="flex items-center space-x-2">
-                                                        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm">
-                                                            {{ substr($request->user->name, 0, 1) }}
-                                                        </div>
+                                                        <img src="{{ $request->user->avatar_url }}" alt="{{ $request->user->name }}" class="w-8 h-8 rounded-full object-cover border border-gray-250 shadow-sm">
                                                         <div>
                                                             <div class="text-sm font-semibold text-gray-900">{{ $request->user->name }}</div>
                                                             <div class="text-xs text-gray-500">{{ $request->user->email }}</div>

@@ -137,9 +137,7 @@
                         <div class="mt-8 p-5 bg-emerald-50/50 border border-emerald-100 rounded-lg">
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div class="flex items-center space-x-4">
-                                    <div class="w-12 h-12 bg-emerald-600 text-white font-black rounded-full flex items-center justify-center text-lg">
-                                        {{ substr($careRequest->acceptedBy->name, 0, 1) }}
-                                    </div>
+                                    <img src="{{ $careRequest->acceptedBy->avatar_url }}" alt="{{ $careRequest->acceptedBy->name }}" class="w-12 h-12 rounded-full object-cover border border-emerald-250 shadow-sm">
                                     <div>
                                         <p class="text-xs uppercase text-emerald-600 font-black tracking-widest">{{ __('Petición Aceptada por') }}</p>
                                         <p class="text-lg font-black text-gray-900">{{ $careRequest->acceptedBy->name }}</p>
@@ -222,9 +220,7 @@
                         <div class="mt-8 p-5 bg-indigo-50 border border-indigo-100 rounded-lg">
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div class="flex items-center space-x-4">
-                                    <div class="w-12 h-12 bg-indigo-600 text-white font-black rounded-full flex items-center justify-center text-lg">
-                                        {{ substr($careRequest->user->name, 0, 1) }}
-                                    </div>
+                                    <img src="{{ $careRequest->user->avatar_url }}" alt="{{ $careRequest->user->name }}" class="w-12 h-12 rounded-full object-cover border border-indigo-250 shadow-sm">
                                     <div>
                                         <p class="text-xs uppercase text-indigo-500 font-black tracking-widest">{{ __('Publicado por') }}</p>
                                         <p class="text-lg font-black text-gray-900">{{ $careRequest->user->name }}</p>

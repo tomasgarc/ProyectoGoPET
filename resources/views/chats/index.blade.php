@@ -31,10 +31,7 @@
                                class="block p-4 transition duration-150 hover:bg-gray-50/80 {{ $isActive ? 'bg-indigo-50/40 border-l-4 border-indigo-600' : '' }}">
                                 <div class="flex items-start space-x-3">
                                     <!-- Avatar del Partner -->
-                                    <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-sm
-                                        {{ $chat->creator_id === auth()->id() ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-700' }}">
-                                        {{ substr($partner->name, 0, 1) }}
-                                    </div>
+                                    <img src="{{ $partner->avatar_url }}" alt="{{ $partner->name }}" class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-200 shadow-sm">
                                     
                                     <!-- Información del Chat -->
                                     <div class="flex-grow min-w-0">
@@ -100,9 +97,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                     </svg>
                                 </a>
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-indigo-600 text-white shadow-sm flex-shrink-0">
-                                    {{ substr($partner->name, 0, 1) }}
-                                </div>
+                                <img src="{{ $partner->avatar_url }}" alt="{{ $partner->name }}" class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-200 shadow-sm">
                                 <div>
                                     <h4 class="font-bold text-gray-900 text-sm leading-tight">{{ $partner->name }}</h4>
                                     <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider mt-0.5 flex items-center">
@@ -151,9 +146,7 @@
                                 <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }}">
                                     <div class="flex items-end space-x-2 max-w-[75%]">
                                         @if(!$isMine)
-                                            <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[10px] flex-shrink-0">
-                                                {{ substr($msg->sender->name, 0, 1) }}
-                                            </div>
+                                            <img src="{{ $msg->sender->avatar_url }}" alt="{{ $msg->sender->name }}" class="w-7 h-7 rounded-full object-cover flex-shrink-0 border border-gray-200 shadow-sm">
                                         @endif
                                         <div class="flex flex-col {{ $isMine ? 'items-end' : 'items-start' }}">
                                             <div class="p-3 rounded-lg text-sm shadow-sm
@@ -188,7 +181,7 @@
                                 <form action="{{ route('chats.messages.store', $activeChat) }}" method="POST" class="flex items-center gap-3">
                                     @csrf
                                     <div class="flex-grow">
-                                        <input type="text" name="content" placeholder="{{ __('Escribe un mensaje...') }}" class="block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm font-semibold py-2.5 px-4 rounded-md" required autocomplete="off">
+                                        <input type="text" id="message-input" name="content" placeholder="{{ __('Escribe un mensaje...') }}" class="block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm font-semibold py-2.5 px-4 rounded-md" required autocomplete="off" autofocus>
                                     </div>
                                     <button type="submit" class="inline-flex items-center justify-center p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition shadow-md flex-shrink-0">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,6 +198,11 @@
                                 const container = document.getElementById('chat-messages-container');
                                 if (container) {
                                     container.scrollTop = container.scrollHeight;
+                                }
+                                
+                                const input = document.getElementById('message-input');
+                                if (input) {
+                                    input.focus();
                                 }
                             });
                         </script>
