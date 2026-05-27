@@ -152,12 +152,19 @@
                                         <p class="text-lg font-black text-gray-900">{{ $careRequest->user->name }}</p>
                                     </div>
                                 </div>
-                                <a href="mailto:{{ $careRequest->user->email }}" class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
-                                    {{ __('Contactar por Email') }}
-                                </a>
+                                @if(!$careRequest->isFinalized())
+                                    <form action="{{ route('chats.start', $careRequest) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-wider shadow-sm transition">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                            </svg>
+                                            {{ __('Enviar Mensaje / Abrir Chat') }}
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="text-sm font-semibold text-gray-400 italic">{{ __('Petición finalizada') }}</span>
+                                @endif
                             </div>
                         </div>
                     @endif
@@ -169,20 +176,24 @@
                                 <span class="mr-2">🤝</span>{{ __('Marcar como Aceptada') }}
                             </h4>
                             <p class="text-xs text-amber-700/80 font-bold mb-4">
-                                {{ __('Si has acordado el cuidado de tus perros con otro usuario, selecciónalo a continuación para cambiar el estado a "Aceptada" y retirarlo del feed público.') }}
+                                {{ __('Solo puedes elegir a cuidadores que te hayan contactado previamente a través de mensajes. Selecciona al cuidador acordado para cambiar el estado a "Aceptada" y retirarlo del feed público.') }}
                             </p>
                             <form action="{{ route('care-requests.accept', $careRequest) }}" method="POST" class="flex flex-col sm:flex-row items-end gap-4">
                                 @csrf
                                 <div class="flex-grow w-full">
                                     <label for="accepted_by" class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">{{ __('Selecciona el cuidador') }}</label>
-                                    <select id="accepted_by" name="accepted_by" class="block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm font-semibold py-2" required>
-                                        <option value="" disabled selected>{{ __('-- Elegir usuario --') }}</option>
-                                        @foreach($users as $user)
-                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
-                                        @endforeach
+                                    <select id="accepted_by" name="accepted_by" class="block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm font-semibold py-2" required {{ $users->isEmpty() ? 'disabled' : '' }}>
+                                        @if($users->isEmpty())
+                                            <option value="" disabled selected>{{ __('Ningún usuario te ha contactado por chat todavía') }}</option>
+                                        @else
+                                            <option value="" disabled selected>{{ __('-- Elegir cuidador --') }}</option>
+                                            @foreach($users as $user)
+                                                <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                            @endforeach
+                                        @endif
                                     </select>
                                 </div>
-                                <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-sm shadow-md transition uppercase tracking-wider flex-shrink-0" style="background-color: #4338ca; color: white;">
+                                <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-sm shadow-md transition uppercase tracking-wider flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" {{ $users->isEmpty() ? 'disabled' : '' }} style="background-color: #4338ca; color: white;">
                                     {{ __('Confirmar Aceptación') }}
                                 </button>
                             </form>

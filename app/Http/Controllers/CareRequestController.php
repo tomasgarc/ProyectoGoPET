@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\CareRequest;
 use App\Models\User;
+use App\Models\Chat;
 
 class CareRequestController extends Controller
 {
@@ -94,7 +95,9 @@ class CareRequestController extends Controller
         
         $users = [];
         if ($careRequest->user_id === auth()->id() && $careRequest->status === 'pending' && !$careRequest->isFinalized()) {
-            $users = User::where('id', '!=', auth()->id())->orderBy('name')->get();
+            // Only allow selecting users who have initiated a chat for this care request
+            $chatUserIds = Chat::where('care_request_id', $careRequest->id)->pluck('user_id');
+            $users = User::whereIn('id', $chatUserIds)->orderBy('name')->get();
         }
 
         return view('care_requests.show', compact('careRequest', 'users'));
@@ -114,6 +117,12 @@ class CareRequestController extends Controller
         ], [
             'accepted_by.different' => 'No puedes seleccionarte a ti mismo como cuidador.',
         ]);
+
+        // Enforce that the accepted user must have opened a chat for this care request
+        $chatUserIds = Chat::where('care_request_id', $careRequest->id)->pluck('user_id')->toArray();
+        if (!in_array($request->accepted_by, $chatUserIds)) {
+            return back()->with('error', 'Solo puedes elegir a un cuidador que te haya contactado previamente por mensajes.');
+        }
 
         if ($careRequest->isFinalized()) {
             return back()->with('error', 'No se puede aceptar una petición que ya ha finalizado.');

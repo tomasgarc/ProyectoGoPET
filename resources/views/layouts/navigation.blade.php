@@ -24,6 +24,9 @@
                     <x-nav-link :href="route('care-requests.index')" :active="request()->routeIs('care-requests.index')">
                         {{ __('Mis Peticiones') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('chats.index')" :active="request()->routeIs('chats.*')">
+                        {{ __('Mensajes') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -87,6 +90,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('care-requests.index')" :active="request()->routeIs('care-requests.index')">
                 {{ __('Mis Peticiones') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('chats.index')" :active="request()->routeIs('chats.*')">
+                {{ __('Mensajes') }}
             </x-responsive-nav-link>
         </div>
 
