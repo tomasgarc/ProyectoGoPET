@@ -24,6 +24,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/chats', [\App\Http\Controllers\ChatController::class, 'index'])->name('chats.index');
     Route::post('/care-requests/{care_request}/chat', [\App\Http\Controllers\ChatController::class, 'start'])->name('chats.start');
     Route::post('/chats/{chat}/messages', [\App\Http\Controllers\ChatController::class, 'storeMessage'])->name('chats.messages.store');
+
+    // Payments & Escrow System
+    Route::get('/care-requests/{care_request}/checkout', [\App\Http\Controllers\PaymentController::class, 'checkout'])->name('payments.checkout');
+    Route::post('/care-requests/{care_request}/pay', [\App\Http\Controllers\PaymentController::class, 'processPayment'])->name('payments.process');
+    Route::post('/care-requests/{care_request}/release-payment', [\App\Http\Controllers\PaymentController::class, 'releasePayment'])->name('payments.release');
+    Route::post('/care-requests/{care_request}/refund-payment', [\App\Http\Controllers\PaymentController::class, 'cancelAndRefund'])->name('payments.refund');
+    Route::get('/wallet', [\App\Http\Controllers\PaymentController::class, 'wallet'])->name('payments.wallet');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

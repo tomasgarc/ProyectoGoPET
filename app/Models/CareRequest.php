@@ -65,4 +65,12 @@ class CareRequest extends Model
             default => ucfirst($status),
         };
     }
+
+    /**
+     * Get the payment associated with the care request.
+     */
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
 }

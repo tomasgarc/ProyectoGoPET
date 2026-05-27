@@ -155,6 +155,68 @@
                         </div>
                     @endif
 
+                    <!-- Estado de Pago e Interacciones de Garantía (Fideicomiso) -->
+                    @if($careRequest->payment)
+                        <div class="mt-6 p-6 rounded-lg border {{ $careRequest->payment->status === 'escrow' ? 'bg-amber-50 border-amber-200 text-amber-900 shadow-sm' : ($careRequest->payment->status === 'released' ? 'bg-emerald-50 border-emerald-200 text-emerald-900 shadow-sm' : 'bg-rose-50 border-rose-200 text-rose-900 shadow-sm') }}">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="text-3xl mt-0.5">
+                                    {{ $careRequest->payment->status === 'escrow' ? '🔒' : ($careRequest->payment->status === 'released' ? '✅' : '⚠️') }}
+                                </div>
+                                <div class="flex-grow">
+                                    <h4 class="font-extrabold text-sm uppercase tracking-wider text-slate-800">
+                                        @if($careRequest->payment->status === 'escrow')
+                                            {{ __('Pago en Depósito de Garantía (Fideicomiso)') }}
+                                        @elseif($careRequest->payment->status === 'released')
+                                            {{ __('Pago Liberado') }}
+                                        @elseif($careRequest->payment->status === 'refunded')
+                                            {{ __('Pago Reembolsado') }}
+                                        @endif
+                                    </h4>
+
+                                    <p class="text-xs mt-2 font-semibold leading-relaxed opacity-90 text-slate-700">
+                                        @if($careRequest->payment->status === 'escrow')
+                                            @if($careRequest->user_id === auth()->id())
+                                                {{ __('Hemos retenido los ') }}<strong>{{ number_format($careRequest->price, 0) }}€</strong>{{ __(' de tu pago de forma segura en GoPET. Una vez finalizado el cuidado, marca el servicio como completado para liberar los fondos al cuidador. Si hay algún problema, puedes cancelar y solicitar un reembolso.') }}
+                                            @else
+                                                {{ __('El dueño de la mascota ya ha realizado el pago de ') }}<strong>{{ number_format($careRequest->price, 0) }}€</strong>{{ __(' (tu ganancia neta será de ') }}<strong>{{ number_format($careRequest->payment->net_amount, 2) }}€</strong>{{ __(' tras la comisión de servicio). El dinero está custodiado por GoPET y se transferirá a tu saldo disponible cuando el dueño marque el servicio como completado.') }}
+                                            @endif
+                                        @elseif($careRequest->payment->status === 'released')
+                                            @if($careRequest->user_id === auth()->id())
+                                                {{ __('Los ') }}<strong>{{ number_format($careRequest->price, 0) }}€</strong>{{ __(' han sido transferidos al saldo disponible del cuidador ') }}<strong>{{ $careRequest->acceptedBy->name }}</strong>.
+                                            @else
+                                                {{ __('¡Felicidades! Los fondos de ') }}<strong>{{ number_format($careRequest->payment->net_amount, 2) }}€</strong>{{ __(' han sido liberados y están disponibles en tu cartera.') }}
+                                            @endif
+                                        @elseif($careRequest->payment->status === 'refunded')
+                                            {{ __('Esta reserva ha sido cancelada y el importe de ') }}<strong>{{ number_format($careRequest->price, 0) }}€</strong>{{ __(' ha sido devuelto a la cuenta del dueño de la mascota.') }}
+                                        @endif
+                                    </p>
+
+                                    <!-- Acciones para el Dueño en estado Escrow -->
+                                    @if($careRequest->payment->status === 'escrow' && $careRequest->user_id === auth()->id())
+                                        <div class="mt-5 flex flex-wrap gap-4">
+                                            <!-- Liberar Pago -->
+                                            <form action="{{ route('payments.release', $careRequest) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition uppercase tracking-wider rounded-lg" onclick="return confirm('¿Confirmas que el cuidado de tu mascota ha finalizado correctamente y deseas liberar el pago al cuidador?')">
+                                                    {{ __('Confirmar Finalización y Liberar Pago') }}
+                                                </button>
+                                            </form>
+
+                                            <!-- Cancelar y Reembolsar -->
+                                            <form action="{{ route('payments.refund', $careRequest) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition uppercase tracking-wider rounded-lg" onclick="return confirm('¿Estás seguro de que quieres cancelar esta reserva? El importe se reembolsará automáticamente y la petición volverá a estar activa en el feed.')">
+                                                    {{ __('Cancelar y Solicitar Reembolso') }}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+
                     <!-- Información del Dueño (si no es el usuario logueado) -->
                     @if($careRequest->user_id !== auth()->id())
                         <div class="mt-8 p-5 bg-indigo-50 border border-indigo-100 rounded-lg">
@@ -206,10 +268,10 @@
                     @if($careRequest->user_id === auth()->id() && $careRequest->status === 'pending' && !$careRequest->isFinalized())
                         <div class="mt-8 p-6 bg-amber-50/50 border border-amber-200 rounded-lg">
                             <h4 class="font-black text-amber-800 text-base uppercase mb-2 flex items-center">
-                                <span class="mr-2">🤝</span>{{ __('Marcar como Aceptada') }}
+                                <span class="mr-2">🤝</span>{{ __('Elegir Cuidador y Pagar') }}
                             </h4>
                             <p class="text-xs text-amber-700/80 font-bold mb-4">
-                                {{ __('Solo puedes elegir a cuidadores que te hayan contactado previamente a través de mensajes. Selecciona al cuidador acordado para cambiar el estado a "Aceptada" y retirarlo del feed público.') }}
+                                {{ __('Selecciona al cuidador con el que hayas chateado. Al continuar, serás redirigido a la pasarela de pago para confirmar la reserva con un depósito en garantía (estilo Airbnb). El dinero no se liberará hasta que confirmes la finalización del servicio.') }}
                             </p>
                             <form action="{{ route('care-requests.accept', $careRequest) }}" method="POST" class="flex flex-col sm:flex-row items-end gap-4">
                                 @csrf
@@ -227,7 +289,7 @@
                                     </select>
                                 </div>
                                 <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-sm shadow-md transition uppercase tracking-wider flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" {{ $users->isEmpty() ? 'disabled' : '' }} style="background-color: #4338ca; color: white;">
-                                    {{ __('Confirmar Aceptación') }}
+                                    {{ __('Proceder al Pago') }}
                                 </button>
                             </form>
                         </div>

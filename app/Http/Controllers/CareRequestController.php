@@ -91,7 +91,7 @@ class CareRequestController extends Controller
      */
     public function show(CareRequest $careRequest)
     {
-        $careRequest->load(['dogs', 'user', 'acceptedBy']);
+        $careRequest->load(['dogs', 'user', 'acceptedBy', 'payment']);
         
         $users = [];
         if ($careRequest->user_id === auth()->id() && $careRequest->status === 'pending' && !$careRequest->isFinalized()) {
@@ -128,13 +128,10 @@ class CareRequestController extends Controller
             return back()->with('error', 'No se puede aceptar una petición que ya ha finalizado.');
         }
 
-        $careRequest->update([
-            'status' => 'accepted',
-            'accepted_by' => $request->accepted_by,
+        return redirect()->route('payments.checkout', [
+            'care_request' => $careRequest->id,
+            'caretaker_id' => $request->accepted_by,
         ]);
-
-        return redirect()->route('care-requests.show', $careRequest)
-            ->with('success', 'Petición marcada como Aceptada con éxito.');
     }
 
     /**
