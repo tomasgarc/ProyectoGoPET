@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\CareRequest;
+use App\Models\User;
 
 class CareRequestController extends Controller
 {
@@ -12,8 +13,25 @@ class CareRequestController extends Controller
      */
     public function index()
     {
-        $careRequests = auth()->user()->careRequests()->with('dogs')->latest()->get();
-        return view('care_requests.index', compact('careRequests'));
+        $today = now()->toDateString();
+
+        // Active requests created by the user
+        $myRequests = auth()->user()->careRequests()
+            ->where('status', '!=', 'finalized')
+            ->where('end_date', '>=', $today)
+            ->with(['dogs', 'acceptedBy'])
+            ->latest()
+            ->get();
+
+        // Active requests accepted by the user
+        $acceptedRequests = CareRequest::where('accepted_by', auth()->id())
+            ->where('status', '!=', 'finalized')
+            ->where('end_date', '>=', $today)
+            ->with(['dogs', 'user'])
+            ->latest()
+            ->get();
+
+        return view('care_requests.index', compact('myRequests', 'acceptedRequests'));
     }
 
     /**
@@ -23,6 +41,7 @@ class CareRequestController extends Controller
     {
         $careRequests = CareRequest::where('user_id', '!=', auth()->id())
             ->where('status', 'pending')
+            ->where('end_date', '>=', now()->toDateString())
             ->with(['dogs', 'user'])
             ->latest()
             ->get();
@@ -71,8 +90,65 @@ class CareRequestController extends Controller
      */
     public function show(CareRequest $careRequest)
     {
-        $careRequest->load('dogs');
-        return view('care_requests.show', compact('careRequest'));
+        $careRequest->load(['dogs', 'user', 'acceptedBy']);
+        
+        $users = [];
+        if ($careRequest->user_id === auth()->id() && $careRequest->status === 'pending' && !$careRequest->isFinalized()) {
+            $users = User::where('id', '!=', auth()->id())->orderBy('name')->get();
+        }
+
+        return view('care_requests.show', compact('careRequest', 'users'));
+    }
+
+    /**
+     * Mark the care request as accepted by a chosen user.
+     */
+    public function accept(Request $request, CareRequest $careRequest)
+    {
+        if ($careRequest->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'accepted_by' => 'required|exists:users,id|different:user_id',
+        ], [
+            'accepted_by.different' => 'No puedes seleccionarte a ti mismo como cuidador.',
+        ]);
+
+        if ($careRequest->isFinalized()) {
+            return back()->with('error', 'No se puede aceptar una petición que ya ha finalizado.');
+        }
+
+        $careRequest->update([
+            'status' => 'accepted',
+            'accepted_by' => $request->accepted_by,
+        ]);
+
+        return redirect()->route('care-requests.show', $careRequest)
+            ->with('success', 'Petición marcada como Aceptada con éxito.');
+    }
+
+    /**
+     * Display a listing of finalized care requests.
+     */
+    public function history()
+    {
+        $today = now()->toDateString();
+
+        // Finalized requests created by the user OR accepted by the user
+        $finalizedRequests = CareRequest::where(function($query) {
+                $query->where('user_id', auth()->id())
+                      ->orWhere('accepted_by', auth()->id());
+            })
+            ->where(function($query) use ($today) {
+                $query->where('end_date', '<', $today)
+                      ->orWhere('status', 'finalized');
+            })
+            ->with(['dogs', 'user', 'acceptedBy'])
+            ->latest()
+            ->get();
+
+        return view('care_requests.history', compact('finalizedRequests'));
     }
 
     /**
