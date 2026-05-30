@@ -33,6 +33,9 @@
                     <x-nav-link :href="route('payments.wallet')" :active="request()->routeIs('payments.wallet')">
                         {{ __('Mi Cartera') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('reviews.index')" :active="request()->routeIs('reviews.*')">
+                        {{ __('Mis Reseñas') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -55,6 +58,9 @@
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('reviews.index')">
+                            {{ __('Mis Reseñas') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
@@ -107,6 +113,9 @@
             <x-responsive-nav-link :href="route('payments.wallet')" :active="request()->routeIs('payments.wallet')">
                 {{ __('Mi Cartera') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('reviews.index')" :active="request()->routeIs('reviews.*')">
+                {{ __('Mis Reseñas') }}
+            </x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->
@@ -124,6 +133,9 @@
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('reviews.index')" :active="request()->routeIs('reviews.index')">
+                    {{ __('Mis Reseñas') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->

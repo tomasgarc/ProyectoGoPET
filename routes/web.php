@@ -32,6 +32,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/care-requests/{care_request}/refund-payment', [\App\Http\Controllers\PaymentController::class, 'cancelAndRefund'])->name('payments.refund');
     Route::get('/wallet', [\App\Http\Controllers\PaymentController::class, 'wallet'])->name('payments.wallet');
 
+    // Reviews & Ratings
+    Route::get('/reviews', [\App\Http\Controllers\ReviewController::class, 'index'])->name('reviews.index');
+    Route::post('/care-requests/{care_request}/reviews', [\App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

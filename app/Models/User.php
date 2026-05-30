@@ -93,4 +93,37 @@ class User extends Authenticatable
     {
         return $this->hasMany(Payment::class, 'receiver_id');
     }
+
+    /**
+     * Get the reviews written by the user.
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'reviewer_id');
+    }
+
+    /**
+     * Get the reviews received by the user.
+     */
+    public function receivedReviews()
+    {
+        return $this->hasMany(Review::class, 'reviewee_id');
+    }
+
+    /**
+     * Get user's average rating.
+     */
+    public function getAverageRatingAttribute()
+    {
+        $avg = $this->receivedReviews()->avg('rating');
+        return $avg ? round($avg, 1) : null;
+    }
+
+    /**
+     * Get total count of received reviews.
+     */
+    public function getReviewsCountAttribute(): int
+    {
+        return $this->receivedReviews()->count();
+    }
 }

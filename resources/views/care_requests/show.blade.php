@@ -141,6 +141,15 @@
                                     <div>
                                         <p class="text-xs uppercase text-emerald-600 font-black tracking-widest">{{ __('Petición Aceptada por') }}</p>
                                         <p class="text-lg font-black text-gray-900">{{ $careRequest->acceptedBy->name }}</p>
+                                        @if($careRequest->acceptedBy->reviews_count > 0)
+                                            <div class="flex items-center mt-0.5 text-amber-500 text-xs font-bold">
+                                                <span class="mr-0.5">★</span>
+                                                <span class="text-slate-700">{{ $careRequest->acceptedBy->average_rating }}</span>
+                                                <span class="text-slate-400 font-medium ml-1">({{ $careRequest->acceptedBy->reviews_count }} {{ __('reseñas') }})</span>
+                                            </div>
+                                        @else
+                                            <p class="text-[10px] text-slate-400 font-semibold mt-0.5">{{ __('Sin valoraciones aún') }}</p>
+                                        @endif
                                     </div>
                                 </div>
                                 <a href="mailto:{{ $careRequest->acceptedBy->email }}" class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-sm transition">
@@ -224,6 +233,15 @@
                                     <div>
                                         <p class="text-xs uppercase text-indigo-500 font-black tracking-widest">{{ __('Publicado por') }}</p>
                                         <p class="text-lg font-black text-gray-900">{{ $careRequest->user->name }}</p>
+                                        @if($careRequest->user->reviews_count > 0)
+                                            <div class="flex items-center mt-0.5 text-amber-500 text-xs font-bold">
+                                                <span class="mr-0.5">★</span>
+                                                <span class="text-slate-700">{{ $careRequest->user->average_rating }}</span>
+                                                <span class="text-slate-400 font-medium ml-1">({{ $careRequest->user->reviews_count }} {{ __('reseñas') }})</span>
+                                            </div>
+                                        @else
+                                            <p class="text-[10px] text-slate-400 font-semibold mt-0.5">{{ __('Sin valoraciones aún') }}</p>
+                                        @endif
                                     </div>
                                 </div>
                                 @if(!$careRequest->isFinalized())
@@ -279,7 +297,14 @@
                                         @else
                                             <option value="" disabled selected>{{ __('-- Elegir cuidador --') }}</option>
                                             @foreach($users as $user)
-                                                <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                                <option value="{{ $user->id }}">
+                                                    {{ $user->name }} ({{ $user->email }}) 
+                                                    @if($user->reviews_count > 0)
+                                                        — ★ {{ $user->average_rating }} ({{ $user->reviews_count }} {{ $user->reviews_count === 1 ? __('reseña') : __('reseñas') }})
+                                                    @else
+                                                        — {{ __('Sin valoraciones aún') }}
+                                                    @endif
+                                                </option>
                                             @endforeach
                                         @endif
                                     </select>
@@ -289,6 +314,111 @@
                                 </button>
                             </form>
                         </div>
+                    @endif
+
+                    <!-- Sección de Reseñas / Valoraciones (Solo si está Finalizada) -->
+                    @if($careRequest->isFinalized())
+                        @php
+                            $user = auth()->user();
+                            $isParticipant = ($user->id === $careRequest->user_id || $user->id === $careRequest->accepted_by);
+                        @endphp
+
+                        @if($isParticipant)
+                            <div class="mt-8 pt-8 border-t border-gray-100">
+                                <h4 class="font-black text-gray-950 text-base uppercase mb-6 flex items-center">
+                                    <span class="mr-2">⭐</span>{{ __('Valoraciones de la Petición') }}
+                                </h4>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Tu Valoración (Enviada o para enviar) -->
+                                    <div class="bg-slate-50/50 border border-slate-100 p-5 rounded-2xl">
+                                        @if($careRequest->canBeReviewedBy($user))
+                                            <h5 class="font-extrabold text-xs text-slate-400 uppercase tracking-wider mb-3.5">{{ __('Dejar tu Reseña') }}</h5>
+                                            
+                                            <form action="{{ route('reviews.store', $careRequest) }}" method="POST" class="space-y-4">
+                                                @csrf
+                                                
+                                                <div>
+                                                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1.5">{{ __('¿Cómo calificarías la experiencia?') }}</label>
+                                                    <div class="flex items-center space-x-1.5" id="star-selector">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <button type="button" data-value="{{ $i }}" class="star-btn text-3xl text-slate-300 hover:scale-110 transition duration-150 focus:outline-none">★</button>
+                                                        @endfor
+                                                    </div>
+                                                    <input type="hidden" name="rating" id="rating-input" required>
+                                                </div>
+
+                                                <div>
+                                                    <label for="comment" class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1.5">{{ __('Tu Comentario') }}</label>
+                                                    <textarea id="comment" name="comment" rows="3" required minlength="5" maxlength="1000"
+                                                        class="block w-full border-slate-200 focus:border-indigo-500 focus:ring-0 text-sm font-semibold rounded-xl py-2 px-3 placeholder-slate-400 transition"
+                                                        placeholder="Describe cómo fue trabajar con este usuario..."></textarea>
+                                                </div>
+
+                                                <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-sm hover:shadow-indigo-100 transition duration-200" style="background-color: #4935e6;">
+                                                    {{ __('Enviar Reseña') }}
+                                                </button>
+                                            </form>
+                                        @else
+                                            @php
+                                                $myReview = $careRequest->getReviewBy($user);
+                                            @endphp
+
+                                            @if($myReview)
+                                                <h5 class="font-extrabold text-xs text-indigo-500 uppercase tracking-wider mb-3.5">{{ __('Tu Reseña Enviada') }}</h5>
+                                                <div class="space-y-2">
+                                                    <div class="flex items-center text-amber-500 text-lg">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <span>{{ $i <= $myReview->rating ? '★' : '☆' }}</span>
+                                                        @endfor
+                                                        <span class="text-xs text-slate-550 font-bold ml-2">({{ $myReview->rating }} {{ __('estrellas') }})</span>
+                                                    </div>
+                                                    <p class="text-xs text-slate-500 font-semibold italic bg-white p-3 border border-slate-100/50 rounded-lg">
+                                                        "{{ $myReview->comment }}"
+                                                    </p>
+                                                    <p class="text-[9px] text-slate-400 font-bold">{{ __('Fecha:') }} {{ $myReview->created_at->format('d/m/Y H:i') }}</p>
+                                                </div>
+                                            @else
+                                                <h5 class="font-extrabold text-xs text-slate-400 uppercase tracking-wider mb-2">{{ __('Dejar tu Reseña') }}</h5>
+                                                <p class="text-xs text-slate-400 font-semibold italic">{{ __('No es posible valorar esta petición.') }}</p>
+                                            @endif
+                                        @endif
+                                    </div>
+
+                                    <!-- Valoración Recibida -->
+                                    <div class="bg-slate-50/50 border border-slate-100 p-5 rounded-2xl">
+                                        @php
+                                            $otherUser = $user->id === $careRequest->user_id ? $careRequest->acceptedBy : $careRequest->user;
+                                            $receivedReview = $otherUser ? $careRequest->getReviewBy($otherUser) : null;
+                                        @endphp
+
+                                        @if($receivedReview)
+                                            <h5 class="font-extrabold text-xs text-emerald-600 uppercase tracking-wider mb-3.5">{{ __('Reseña Recibida de :name', ['name' => $otherUser->name]) }}</h5>
+                                            <div class="space-y-2">
+                                                <div class="flex items-center text-amber-500 text-lg">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <span>{{ $i <= $receivedReview->rating ? '★' : '☆' }}</span>
+                                                    @endfor
+                                                    <span class="text-xs text-slate-550 font-bold ml-2">({{ $receivedReview->rating }} {{ __('estrellas') }})</span>
+                                                </div>
+                                                <p class="text-xs text-slate-500 font-semibold italic bg-white p-3 border border-slate-100/50 rounded-lg">
+                                                    "{{ $receivedReview->comment }}"
+                                                </p>
+                                                <p class="text-[9px] text-slate-400 font-bold">{{ __('Fecha:') }} {{ $receivedReview->created_at->format('d/m/Y H:i') }}</p>
+                                            </div>
+                                        @else
+                                            <h5 class="font-extrabold text-xs text-slate-400 uppercase tracking-wider mb-3.5">{{ __('Reseña del otro participante') }}</h5>
+                                            <div class="text-center py-6">
+                                                <span class="text-3xl block opacity-60">⏳</span>
+                                                <p class="text-xs text-slate-450 font-semibold mt-2 leading-relaxed">
+                                                    {{ __('Esperando que :name envíe su valoración sobre ti.', ['name' => $otherUser ? $otherUser->name : 'el otro usuario']) }}
+                                                </p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     @endif
 
                     <!-- Acciones del pie -->
@@ -312,4 +442,57 @@
             </div>
         </div>
     </div>
+    <!-- Script para selector de estrellas de reseñas interactivo -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const stars = document.querySelectorAll('.star-btn');
+            const ratingInput = document.getElementById('rating-input');
+
+            if (stars.length && ratingInput) {
+                stars.forEach(star => {
+                    star.addEventListener('click', function () {
+                        const value = parseInt(this.getAttribute('data-value'));
+                        ratingInput.value = value;
+                        updateStars(value);
+                    });
+
+                    star.addEventListener('mouseover', function () {
+                        const value = parseInt(this.getAttribute('data-value'));
+                        highlightStars(value);
+                    });
+
+                    star.addEventListener('mouseout', function () {
+                        const value = parseInt(ratingInput.value) || 0;
+                        updateStars(value);
+                    });
+                });
+            }
+
+            function highlightStars(val) {
+                stars.forEach(star => {
+                    const starVal = parseInt(star.getAttribute('data-value'));
+                    if (starVal <= val) {
+                        star.classList.remove('text-slate-300');
+                        star.classList.add('text-amber-400');
+                    } else {
+                        star.classList.remove('text-amber-400');
+                        star.classList.add('text-slate-300');
+                    }
+                });
+            }
+
+            function updateStars(val) {
+                stars.forEach(star => {
+                    const starVal = parseInt(star.getAttribute('data-value'));
+                    if (starVal <= val) {
+                        star.classList.remove('text-slate-300', 'text-amber-400');
+                        star.classList.add('text-amber-500');
+                    } else {
+                        star.classList.remove('text-amber-500', 'text-amber-400');
+                        star.classList.add('text-slate-300');
+                    }
+                });
+            }
+        });
+    </script>
 </x-app-layout>

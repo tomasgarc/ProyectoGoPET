@@ -73,4 +73,51 @@ class CareRequest extends Model
     {
         return $this->hasOne(Payment::class);
     }
+
+    /**
+     * Get the reviews associated with the care request.
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Check if a user can submit a review for this care request.
+     */
+    public function canBeReviewedBy($user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        $userId = is_numeric($user) ? $user : $user->id;
+
+        // Care request must be finalized
+        if (!$this->isFinalized()) {
+            return false;
+        }
+
+        // User must be either the owner or the caretaker (accepted_by)
+        if ($userId !== $this->user_id && $userId !== $this->accepted_by) {
+            return false;
+        }
+
+        // Must not have left a review already
+        return !$this->reviews()->where('reviewer_id', $userId)->exists();
+    }
+
+    /**
+     * Get the review written by a specific user for this request.
+     */
+    public function getReviewBy($user)
+    {
+        if (!$user) {
+            return null;
+        }
+
+        $userId = is_numeric($user) ? $user : $user->id;
+
+        return $this->reviews()->where('reviewer_id', $userId)->first();
+    }
 }

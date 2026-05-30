@@ -79,11 +79,18 @@
                             <div class="flex-grow">
                                 <h4 class="text-lg font-extrabold text-slate-800 tracking-tight">{{ $caretaker->name }}</h4>
                                 <p class="text-sm text-slate-500 font-semibold truncate">{{ $caretaker->email }}</p>
-                                <div class="flex items-center mt-1.5 text-amber-500 text-xs">
-                                    <span class="mr-1">★</span>
-                                    <span class="font-extrabold text-slate-700">4.9</span>
-                                    <span class="text-slate-400 ml-1.5 font-medium">(24 valoraciones)</span>
-                                </div>
+                                @if($caretaker->reviews_count > 0)
+                                    <div class="flex items-center mt-1.5 text-amber-500 text-xs">
+                                        <span class="mr-1">★</span>
+                                        <span class="font-extrabold text-slate-700">{{ $caretaker->average_rating }}</span>
+                                        <span class="text-slate-400 ml-1.5 font-medium">({{ $caretaker->reviews_count }} {{ $caretaker->reviews_count === 1 ? __('valoración') : __('valoraciones') }})</span>
+                                    </div>
+                                @else
+                                    <div class="flex items-center mt-1.5 text-slate-400 text-[11px] font-semibold">
+                                        <span class="mr-1">☆</span>
+                                        <span>{{ __('Sin valoraciones aún') }}</span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
