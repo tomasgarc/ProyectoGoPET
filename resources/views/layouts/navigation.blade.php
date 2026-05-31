@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false }" class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-brand-200/50 shadow-sm shadow-brand-50/20">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <x-application-logo class="block h-9 w-auto text-brand-600" />
                     </a>
                 </div>
 
@@ -43,8 +43,8 @@
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-8 h-8 rounded-full object-cover me-2 border border-gray-200">
+                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-2xl text-accent-600 bg-white hover:text-brand-600 focus:outline-none transition ease-in-out duration-150">
+                            <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-8 h-8 rounded-full object-cover me-2 border-2 border-brand-200">
                             <div>{{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
@@ -119,10 +119,10 @@
         </div>
 
         <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
+        <div class="pt-4 pb-1 border-t border-brand-100">
             <div class="flex items-center px-4">
                 <div class="shrink-0 me-3">
-                    <img class="h-10 w-10 rounded-full object-cover border border-gray-200" src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}">
+                    <img class="h-10 w-10 rounded-full object-cover border-2 border-brand-200" src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}">
                 </div>
                 <div>
                     <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>

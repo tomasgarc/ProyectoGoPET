@@ -1,11 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h2 class="font-bold text-2xl text-brand-900 leading-tight">
                 {{ __('Mis Favoritos') }}
             </h2>
-            <a href="{{ route('care-requests.explore') }}" class="inline-flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
-                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('care-requests.explore') }}" class="inline-flex items-center text-sm font-bold text-accent-600 hover:text-brand-600 transition-colors">
+                <svg class="w-4 h-4 mr-1.5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 {{ __('Volver a Explorar') }}
@@ -16,27 +16,25 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if(session('success'))
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg relative mb-6 flex items-center shadow-sm" role="alert">
-                    <svg class="w-5 h-5 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="block sm:inline font-medium text-sm">{{ session('success') }}</span>
+                <div class="bg-brand-50 border border-brand-200 text-brand-900 px-4 py-3 rounded-2xl relative mb-6 flex items-center shadow-sm" role="alert">
+                    <span class="mr-2">✨</span>
+                    <span class="font-bold text-sm">{{ session('success') }}</span>
                 </div>
             @endif
 
             <div class="mb-6">
-                <p class="text-sm text-gray-500">
+                <p class="text-sm text-accent-600 font-semibold">
                     {{ __('Aquí se muestran las peticiones de cuidado activas que has marcado con un corazón para seguir de cerca o contactar más tarde.') }}
                 </p>
             </div>
 
             @if($favorites->isEmpty())
-                <div class="text-center py-16 bg-white border border-dashed border-gray-200 rounded-lg shadow-sm">
-                    <span class="text-6xl mb-4 block">❤️</span>
-                    <h3 class="text-lg font-bold text-gray-900 mt-2">{{ __('No tienes favoritos todavía') }}</h3>
-                    <p class="text-gray-500 mt-1 max-w-md mx-auto">{{ __('Explora las peticiones de cuidado disponibles y haz clic en el corazón para guardarlas aquí.') }}</p>
-                    <div class="mt-6">
-                        <a href="{{ route('care-requests.explore') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition">
+                <div class="text-center py-16 bg-white border-2 border-dashed border-brand-200 rounded-3xl shadow-sm max-w-md mx-auto space-y-4">
+                    <span class="text-6xl block">❤️</span>
+                    <h3 class="text-lg font-black text-brand-900 mt-2">{{ __('No tienes favoritos todavía') }}</h3>
+                    <p class="text-accent-600 text-sm font-medium leading-relaxed">{{ __('Explora las peticiones de cuidado disponibles y haz clic en el corazón para guardarlas aquí.') }}</p>
+                    <div class="pt-2">
+                        <a href="{{ route('care-requests.explore') }}" class="inline-flex items-center px-5 py-2.5 bg-brand-200 hover:bg-brand-500 text-brand-900 hover:text-white font-bold text-sm rounded-2xl shadow-sm transition">
                             {{ __('Explorar Peticiones') }}
                         </a>
                     </div>
@@ -44,50 +42,53 @@
             @else
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($favorites as $request)
-                        <div class="bg-white overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 flex flex-col">
+                        <div class="bg-white overflow-hidden shadow-sm border border-brand-100/50 rounded-3xl hover:shadow-xl hover:shadow-brand-100/10 hover:border-brand-200/50 transition-all duration-300 flex flex-col justify-between group">
+                            
                             <!-- Header de la Card -->
-                            <div class="p-5 border-b border-gray-50 bg-gray-50/50">
+                            <div class="p-5 border-b border-brand-50 bg-accent-50/20">
                                 <div class="flex justify-between items-start">
                                     <div class="flex items-center space-x-3">
-                                        <img src="{{ $request->user->avatar_url }}" alt="{{ $request->user->name }}" class="w-10 h-10 rounded-full object-cover border border-gray-250 shadow-sm">
+                                        <img src="{{ $request->user->avatar_url }}" alt="{{ $request->user->name }}" class="w-10 h-10 rounded-full object-cover border border-brand-100 shadow-sm">
                                         <div>
-                                            <p class="text-sm font-bold text-gray-900">{{ $request->user->name }}</p>
-                                            <p class="text-xs text-gray-500">Publicado {{ $request->created_at->diffForHumans() }}</p>
+                                            <p class="text-sm font-bold text-brand-900 leading-tight">{{ $request->user->name }}</p>
+                                            <p class="text-[10px] text-accent-500 font-semibold mt-0.5">{{ $request->created_at->diffForHumans() }}</p>
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <span class="text-lg font-black text-indigo-600">{{ number_format($request->price, 0) }}€</span>
-                                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Presupuesto</p>
+                                        <span class="text-xl font-black text-brand-600 block leading-none">{{ number_format($request->price, 0) }}€</span>
+                                        <p class="text-[9px] text-accent-500 uppercase font-black tracking-widest mt-1">Presupuesto</p>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Cuerpo de la Card -->
-                            <div class="p-5 flex-grow">
-                                <h4 class="text-xs font-bold text-gray-400 uppercase mb-3 tracking-widest">Perros a cuidar</h4>
-                                <div class="flex flex-wrap gap-2 mb-4">
-                                    @foreach($request->dogs as $dog)
-                                        <div class="flex items-center bg-indigo-50 border border-indigo-100 pr-2 overflow-hidden">
-                                            @if($dog->photo)
-                                                <img src="{{ asset('storage/' . $dog->photo) }}" class="w-6 h-6 aspect-square object-cover mr-2">
-                                            @else
-                                                <span class="text-xs ml-2 mr-1">🐾</span>
-                                            @endif
-                                            <span class="text-[10px] font-bold text-indigo-700 uppercase">{{ $dog->name }}</span>
-                                        </div>
-                                    @endforeach
+                            <div class="p-5 flex-grow space-y-4">
+                                <div>
+                                    <h4 class="text-[10px] font-black text-accent-500 uppercase tracking-widest mb-2">Perros a cuidar</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach($request->dogs as $dog)
+                                            <div class="flex items-center bg-brand-50/50 border border-brand-100/50 pr-2.5 overflow-hidden rounded-full py-0.5 pl-0.5">
+                                                @if($dog->photo)
+                                                    <img src="{{ asset('storage/' . $dog->photo) }}" class="w-5 h-5 aspect-square rounded-full object-cover mr-1.5 shadow-sm">
+                                                @else
+                                                    <span class="text-[10px] ml-2 mr-1">🐾</span>
+                                                @endif
+                                                <span class="text-[10px] font-bold text-brand-700 uppercase tracking-wide">{{ $dog->name }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 </div>
 
-                                <div class="space-y-3">
-                                    <div class="flex items-center text-sm text-gray-600">
-                                        <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="space-y-3 pt-2 border-t border-brand-50/50">
+                                    <div class="flex items-center text-sm text-accent-700 font-semibold">
+                                        <svg class="w-4 h-4 mr-2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         <span>{{ \Carbon\Carbon::parse($request->start_date)->format('d M') }} - {{ \Carbon\Carbon::parse($request->end_date)->format('d M') }}</span>
                                     </div>
                                     
                                     @if($request->description)
-                                        <p class="text-sm text-gray-600 line-clamp-2 italic">
+                                        <p class="text-xs text-accent-600 font-medium line-clamp-2 italic leading-relaxed bg-accent-50/30 p-2.5 rounded-xl border border-brand-50/30">
                                             "{{ $request->description }}"
                                         </p>
                                     @endif
@@ -95,13 +96,13 @@
                             </div>
 
                             <!-- Footer / Acciones -->
-                            <div class="p-5 bg-gray-50/30 border-t border-gray-50 flex items-center gap-3">
-                                <a href="{{ route('care-requests.show', $request) }}" class="flex-grow text-center py-2 bg-white border border-indigo-200 text-indigo-700 font-bold text-sm hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all duration-200 shadow-sm" style="border-width: 2px; border-style: solid;">
+                            <div class="p-5 bg-accent-50/10 border-t border-brand-50 flex items-center gap-3">
+                                <a href="{{ route('care-requests.show', $request) }}" class="flex-grow text-center py-2.5 bg-white border border-brand-200 text-brand-700 font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-brand-600 hover:text-white hover:border-brand-600 transition-all duration-200 hover:scale-[1.02] shadow-sm">
                                     {{ __('Ver Detalles') }}
                                 </a>
                                 <form action="{{ route('care-requests.favorite', $request) }}" method="POST" class="inline">
                                     @csrf
-                                    <button type="submit" class="p-2 bg-white border-2 border-gray-200 hover:border-rose-400 hover:bg-rose-50 text-gray-400 hover:text-rose-600 transition-colors shadow-sm focus:outline-none flex items-center justify-center" title="Quitar de favoritos">
+                                    <button type="submit" class="p-2.5 bg-white border border-brand-200 hover:border-rose-400 hover:bg-rose-50/50 text-accent-400 hover:text-rose-600 transition-all duration-200 shadow-sm focus:outline-none flex items-center justify-center rounded-2xl" title="Quitar de favoritos">
                                         <svg class="w-5 h-5 text-rose-600 fill-current" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                         </svg>

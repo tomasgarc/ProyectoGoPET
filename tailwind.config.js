@@ -11,8 +11,25 @@ export default {
 
     theme: {
         extend: {
+            colors: {
+                brand: {
+                    50: '#f3f8f6',
+                    100: '#e2f0ea',
+                    200: '#c8e2d7',
+                    500: '#4f8a77',
+                    600: '#3b6d5d',
+                    700: '#2f574a',
+                    900: '#1c352d',
+                },
+                accent: {
+                    50: '#faf9f5',
+                    100: '#f3f1e8',
+                    600: '#8c866d',
+                    950: '#22211c',
+                }
+            },
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Nunito', 'Figtree', ...defaultTheme.fontFamily.sans],
             },
         },
     },
