@@ -7,9 +7,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+Route::post('/dashboard/update-analytics', [\App\Http\Controllers\DashboardController::class, 'updateAnalytics'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.update-analytics');
 
 Route::middleware('auth')->group(function () {
     Route::resource('dogs', \App\Http\Controllers\DogController::class);

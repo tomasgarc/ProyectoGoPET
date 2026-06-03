@@ -1,0 +1,189 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+
+class DashboardController extends Controller
+{
+    /**
+     * Display the platform and user dashboard.
+     */
+    public function index()
+    {
+        $analyticsPath = storage_path('app/analytics.json');
+        $stats = null;
+
+        // Try to read analytics if they exist, otherwise try to run the script
+        if (File::exists($analyticsPath)) {
+            $stats = json_decode(File::get($analyticsPath), true);
+        } else {
+            // Run the python script to generate the analytics
+            $this->runPythonScript();
+            if (File::exists($analyticsPath)) {
+                $stats = json_decode(File::get($analyticsPath), true);
+            }
+        }
+
+        return view('dashboard', compact('stats'));
+    }
+
+    /**
+     * Update the analytics by running the python script.
+     */
+    public function updateAnalytics()
+    {
+        $output = $this->runPythonScript();
+
+        if (str_contains($output, 'Error') && !str_contains($output, 'Connecting to SQLite')) {
+            return back()->with('error', 'Ocurrió un error al ejecutar el script de Python: ' . $output);
+        }
+
+        // Check if fallback was written
+        $stats = null;
+        $analyticsPath = storage_path('app/analytics.json');
+        if (File::exists($analyticsPath)) {
+            $stats = json_decode(File::get($analyticsPath), true);
+        }
+
+        if ($stats && isset($stats['is_fallback']) && $stats['is_fallback']) {
+            return back()->with('success', 'Análisis actualizado en modo de compatibilidad (PHP). El script de Python falló o no está instalado, pero los datos se calcularon correctamente.');
+        }
+
+        return back()->with('success', 'Estadísticas y gráficos recalculados con Python con éxito. 📊');
+    }
+
+    /**
+     * Run the python ETL script.
+     */
+    private function runPythonScript(): string
+    {
+        $scriptPath = base_path('python/analyze_data.py');
+        
+        // Prepare list of python paths/executables to try
+        $commands = [];
+        
+        // 1. Support custom PYTHON_PATH from .env (cache-safe via services config)
+        if (config('services.python.path')) {
+            $commands[] = config('services.python.path');
+        }
+        
+        // 2. Standard system command paths
+        $commands[] = 'python';
+        $commands[] = 'python3';
+        $commands[] = 'py';
+        
+        // 3. Dynamic Windows Anaconda/Miniconda/Programs paths based on USERPROFILE or HOMEDRIVE/HOMEPATH
+        $userProfile = getenv('USERPROFILE') ?: ($_SERVER['USERPROFILE'] ?? null);
+        if (!$userProfile) {
+            $homeDrive = getenv('HOMEDRIVE') ?: ($_SERVER['HOMEDRIVE'] ?? null);
+            $homePath = getenv('HOMEPATH') ?: ($_SERVER['HOMEPATH'] ?? null);
+            if ($homeDrive && $homePath) {
+                $userProfile = $homeDrive . $homePath;
+            }
+        }
+        
+        // Add specific user Anaconda path as high-priority fallback
+        $commands[] = 'C:\\Users\\ytuqu\\anaconda3\\python.exe';
+
+        if ($userProfile) {
+            $userProfile = rtrim($userProfile, DIRECTORY_SEPARATOR);
+            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'anaconda3' . DIRECTORY_SEPARATOR . 'python.exe';
+            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'miniconda3' . DIRECTORY_SEPARATOR . 'python.exe';
+            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'AppData' . DIRECTORY_SEPARATOR . 'Local' . DIRECTORY_SEPARATOR . 'Programs' . DIRECTORY_SEPARATOR . 'Python' . DIRECTORY_SEPARATOR . 'Python313' . DIRECTORY_SEPARATOR . 'python.exe';
+            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'AppData' . DIRECTORY_SEPARATOR . 'Local' . DIRECTORY_SEPARATOR . 'Programs' . DIRECTORY_SEPARATOR . 'Python' . DIRECTORY_SEPARATOR . 'Python312' . DIRECTORY_SEPARATOR . 'python.exe';
+            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'AppData' . DIRECTORY_SEPARATOR . 'Local' . DIRECTORY_SEPARATOR . 'Programs' . DIRECTORY_SEPARATOR . 'Python' . DIRECTORY_SEPARATOR . 'Python311' . DIRECTORY_SEPARATOR . 'python.exe';
+            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'AppData' . DIRECTORY_SEPARATOR . 'Local' . DIRECTORY_SEPARATOR . 'Programs' . DIRECTORY_SEPARATOR . 'Python' . DIRECTORY_SEPARATOR . 'Python310' . DIRECTORY_SEPARATOR . 'python.exe';
+        }
+        
+        $output = '';
+        $success = false;
+        $errors = [];
+
+        foreach ($commands as $cmd) {
+            try {
+                $process = new Process([$cmd, $scriptPath]);
+                $process->run();
+
+                if ($process->isSuccessful()) {
+                    $output = $process->getOutput();
+                    $success = true;
+                    break;
+                } else {
+                    $errors[$cmd] = trim($process->getErrorOutput());
+                }
+            } catch (\Exception $e) {
+                $errors[$cmd] = $e->getMessage();
+            }
+        }
+
+        if (!$success) {
+            \Illuminate\Support\Facades\Log::error("Python ETL failed. Tried commands with errors: " . json_encode($errors, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+            // If execution failed, let's write a mock/default JSON fallback so the app still renders
+            $this->writeFallbackAnalytics();
+            return "Fallaron todos los ejecutables de Python.";
+        }
+
+        return $output;
+    }
+
+    /**
+     * Generates a fallback JSON in case python is not installed.
+     */
+    private function writeFallbackAnalytics()
+    {
+        $analyticsPath = storage_path('app/analytics.json');
+        
+        // Count database metrics in PHP as a fallback
+        $totalUsers = \App\Models\User::count();
+        $totalDogs = \App\Models\Dog::count();
+        $totalRequests = \App\Models\CareRequest::count();
+        $activeRequests = \App\Models\CareRequest::whereIn('status', ['pending', 'accepted'])
+            ->where('end_date', '>=', now()->toDateString())
+            ->count();
+        $totalReviews = \App\Models\Review::count();
+        $avgRating = \App\Models\Review::avg('rating') ?? 0.0;
+        
+        $totalVolume = \App\Models\Payment::whereIn('status', ['released', 'escrow'])->sum('amount');
+        $fees = \App\Models\Payment::whereIn('status', ['released', 'escrow'])->sum('fee');
+        $escrow = \App\Models\Payment::where('status', 'escrow')->sum('amount');
+        $released = \App\Models\Payment::where('status', 'released')->sum('amount');
+        $refunded = \App\Models\Payment::where('status', 'refunded')->sum('amount');
+
+        // Dog sizes distribution
+        $dogSizes = \App\Models\Dog::select('size', \DB::raw('count(*) as count'))
+            ->groupBy('size')
+            ->pluck('count', 'size')
+            ->toArray();
+
+        // Request status distribution
+        $requestStatuses = \App\Models\CareRequest::select('status', \DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $fallbackData = [
+            'total_users' => $totalUsers,
+            'total_dogs' => $totalDogs,
+            'total_requests' => $totalRequests,
+            'active_requests' => $activeRequests,
+            'average_rating' => round($avgRating, 2),
+            'total_reviews' => $totalReviews,
+            'total_volume' => round($totalVolume, 2),
+            'platform_fees' => round($fees, 2),
+            'escrow_amount' => round($escrow, 2),
+            'released_amount' => round($released, 2),
+            'refunded_amount' => round($refunded, 2),
+            'dog_sizes' => $dogSizes,
+            'request_statuses' => $requestStatuses,
+            'charts_generated' => false, // fallback mode
+            'is_fallback' => true
+        ];
+
+        File::ensureDirectoryExists(dirname($analyticsPath));
+        File::put($analyticsPath, json_encode($fallbackData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+}
