@@ -120,7 +120,7 @@
                                     <span class="text-brand-600 font-black">{{ number_format($careRequest->price, 0) }}€</span>
                                 </div>
 
-                                <a href="{{ route('care-requests.show', $careRequest) }}" class="inline-flex items-center px-4.5 py-1.5 bg-white hover:bg-brand-50/50 text-brand-750 border border-brand-200 rounded-xl text-xs font-bold transition shadow-sm">
+                                <a href="{{ route('care-requests.show', $careRequest) }}" class="inline-flex items-center px-5 py-2 bg-white hover:bg-brand-50/50 text-brand-750 border border-brand-200 rounded-xl text-xs font-bold transition shadow-sm">
                                     {{ __('Ver Petición') }}
                                 </a>
 
@@ -129,7 +129,7 @@
                                     <form action="{{ route('care-requests.accept', $careRequest) }}" method="POST" class="inline">
                                         @csrf
                                         <input type="hidden" name="accepted_by" value="{{ $partner->id }}">
-                                        <button type="submit" class="inline-flex items-center px-4.5 py-1.5 bg-brand-200 hover:bg-brand-500 text-brand-900 hover:text-white rounded-xl text-xs font-bold transition shadow-sm uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98]" onclick="return confirm('¿Confirmas que deseas seleccionar a {{ $partner->name }} como cuidador para tus perros?')">
+                                        <button type="submit" class="inline-flex items-center px-5 py-2 bg-brand-200 hover:bg-brand-500 text-brand-900 hover:text-white rounded-xl text-xs font-bold transition shadow-sm uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98]" onclick="return confirm('¿Confirmas que deseas seleccionar a {{ $partner->name }} como cuidador para tus perros?')">
                                             🤝 {{ __('Elegir Cuidador') }}
                                         </button>
                                     </form>
