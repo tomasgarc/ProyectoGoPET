@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\CareRequest;
 use App\Models\Chat;
 use App\Models\Message;
-use App\Models\CareRequest;
+use Illuminate\Http\Request;
 
 class ChatController extends Controller
 {
@@ -17,22 +17,22 @@ class ChatController extends Controller
         $userId = auth()->id();
 
         // Get all chats where user is owner or caregiver, with latest messages and relations
-        $chats = Chat::where(function($query) use ($userId) {
-                $query->where('user_id', $userId)
-                      ->orWhere('creator_id', $userId);
-            })
+        $chats = Chat::where(function ($query) use ($userId) {
+            $query->where('user_id', $userId)
+                ->orWhere('creator_id', $userId);
+        })
             ->with(['careRequest.dogs', 'user', 'creator', 'latestMessage'])
             ->get()
-            ->sortByDesc(function($chat) {
+            ->sortByDesc(function ($chat) {
                 return $chat->latestMessage ? $chat->latestMessage->created_at : $chat->created_at;
             });
 
         $activeChat = null;
         if ($request->has('chat')) {
             $activeChat = Chat::with(['messages.sender', 'careRequest.dogs', 'user', 'creator'])
-                ->where(function($query) use ($userId) {
+                ->where(function ($query) use ($userId) {
                     $query->where('user_id', $userId)
-                          ->orWhere('creator_id', $userId);
+                        ->orWhere('creator_id', $userId);
                 })
                 ->find($request->chat);
 

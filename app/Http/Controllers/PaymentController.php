@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\CareRequest;
-use App\Models\User;
 use App\Models\Payment;
-use Illuminate\Support\Str;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
@@ -71,7 +71,7 @@ class PaymentController extends Controller
         $caretakerId = $request->caretaker_id;
 
         // Start Transaction
-        DB::transaction(function() use ($careRequest, $caretakerId, $request) {
+        DB::transaction(function () use ($careRequest, $caretakerId, $request) {
             // Update Care Request
             $careRequest->update([
                 'status' => 'accepted',
@@ -81,7 +81,7 @@ class PaymentController extends Controller
             $amount = $careRequest->price;
             $fee = round($amount * 0.10, 2);
             $netAmount = $amount - $fee;
-            
+
             // Clean card number spaces
             $cleanCard = str_replace(' ', '', $request->card_number);
             $lastFour = substr($cleanCard, -4);
@@ -96,7 +96,7 @@ class PaymentController extends Controller
                 'net_amount' => $netAmount,
                 'status' => 'escrow',
                 'card_last_four' => $lastFour,
-                'transaction_id' => 'ch_' . Str::random(20),
+                'transaction_id' => 'ch_'.Str::random(20),
             ]);
         });
 
@@ -115,11 +115,11 @@ class PaymentController extends Controller
 
         $payment = $careRequest->payment()->where('status', 'escrow')->first();
 
-        if (!$payment) {
+        if (! $payment) {
             return back()->with('error', 'No se encontró ningún pago retenido para esta petición.');
         }
 
-        DB::transaction(function() use ($careRequest, $payment) {
+        DB::transaction(function () use ($careRequest, $payment) {
             // Update payment
             $payment->update([
                 'status' => 'released',
@@ -146,11 +146,11 @@ class PaymentController extends Controller
 
         $payment = $careRequest->payment()->where('status', 'escrow')->first();
 
-        if (!$payment) {
+        if (! $payment) {
             return back()->with('error', 'No se encontró ningún pago activo en depósito para esta petición.');
         }
 
-        DB::transaction(function() use ($careRequest, $payment) {
+        DB::transaction(function () use ($careRequest, $payment) {
             // Update payment
             $payment->update([
                 'status' => 'refunded',

@@ -31,11 +31,11 @@ class User extends Authenticatable
     public function getAvatarUrlAttribute(): string
     {
         if ($this->avatar) {
-            return asset('storage/' . $this->avatar);
+            return asset('storage/'.$this->avatar);
         }
 
         // Hermoso avatar por defecto con iniciales
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+        return 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&color=7F9CF5&background=EBF4FF';
     }
 
     /**
@@ -116,6 +116,7 @@ class User extends Authenticatable
     public function getAverageRatingAttribute()
     {
         $avg = $this->receivedReviews()->avg('rating');
+
         return $avg ? round($avg, 1) : null;
     }
 

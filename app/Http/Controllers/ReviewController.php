@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\CareRequest;
 use App\Models\Review;
+use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
@@ -47,12 +47,12 @@ class ReviewController extends Controller
             2 => 0,
             1 => 0,
         ];
-        
+
         $allReceivedReviews = $user->receivedReviews;
         $totalReceivedCount = $allReceivedReviews->count();
-        
+
         foreach ($allReceivedReviews as $rev) {
-            $r = (int)$rev->rating;
+            $r = (int) $rev->rating;
             if (isset($starsDistribution[$r])) {
                 $starsDistribution[$r]++;
             }
@@ -60,9 +60,9 @@ class ReviewController extends Controller
 
         // 5. Finalized care requests involving this user where they haven't submitted a review yet
         $pendingToReview = CareRequest::where(function ($query) use ($user) {
-                $query->where('user_id', $user->id)
-                      ->orWhere('accepted_by', $user->id);
-            })
+            $query->where('user_id', $user->id)
+                ->orWhere('accepted_by', $user->id);
+        })
             ->where('status', 'finalized')
             ->whereDoesntHave('reviews', function ($query) use ($user) {
                 $query->where('reviewer_id', $user->id);
@@ -88,7 +88,7 @@ class ReviewController extends Controller
     {
         $user = auth()->user();
 
-        if (!$careRequest->canBeReviewedBy($user)) {
+        if (! $careRequest->canBeReviewedBy($user)) {
             abort(403, 'No tienes autorización para valorar este servicio o ya lo has valorado.');
         }
 
@@ -114,7 +114,7 @@ class ReviewController extends Controller
             $revieweeId = $careRequest->user_id;
         }
 
-        if (!$revieweeId) {
+        if (! $revieweeId) {
             return back()->with('error', 'No se puede reseñar un servicio que no tiene un cuidador asignado.');
         }
 

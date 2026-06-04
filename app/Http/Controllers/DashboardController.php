@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CareRequest;
+use App\Models\Dog;
+use App\Models\Payment;
+use App\Models\Review;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class DashboardController extends Controller
 {
@@ -38,8 +43,8 @@ class DashboardController extends Controller
     {
         $output = $this->runPythonScript();
 
-        if (str_contains($output, 'Error') && !str_contains($output, 'Connecting to SQLite')) {
-            return back()->with('error', 'Ocurrió un error al ejecutar el script de Python: ' . $output);
+        if (str_contains($output, 'Error') && ! str_contains($output, 'Connecting to SQLite')) {
+            return back()->with('error', 'Ocurrió un error al ejecutar el script de Python: '.$output);
         }
 
         // Check if fallback was written
@@ -62,43 +67,43 @@ class DashboardController extends Controller
     private function runPythonScript(): string
     {
         $scriptPath = base_path('python/analyze_data.py');
-        
+
         // Prepare list of python paths/executables to try
         $commands = [];
-        
+
         // 1. Support custom PYTHON_PATH from .env (cache-safe via services config)
         if (config('services.python.path')) {
             $commands[] = config('services.python.path');
         }
-        
+
         // 2. Standard system command paths
         $commands[] = 'python';
         $commands[] = 'python3';
         $commands[] = 'py';
-        
+
         // 3. Dynamic Windows Anaconda/Miniconda/Programs paths based on USERPROFILE or HOMEDRIVE/HOMEPATH
         $userProfile = getenv('USERPROFILE') ?: ($_SERVER['USERPROFILE'] ?? null);
-        if (!$userProfile) {
+        if (! $userProfile) {
             $homeDrive = getenv('HOMEDRIVE') ?: ($_SERVER['HOMEDRIVE'] ?? null);
             $homePath = getenv('HOMEPATH') ?: ($_SERVER['HOMEPATH'] ?? null);
             if ($homeDrive && $homePath) {
-                $userProfile = $homeDrive . $homePath;
+                $userProfile = $homeDrive.$homePath;
             }
         }
-        
+
         // Add specific user Anaconda path as high-priority fallback
         $commands[] = 'C:\\Users\\ytuqu\\anaconda3\\python.exe';
 
         if ($userProfile) {
             $userProfile = rtrim($userProfile, DIRECTORY_SEPARATOR);
-            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'anaconda3' . DIRECTORY_SEPARATOR . 'python.exe';
-            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'miniconda3' . DIRECTORY_SEPARATOR . 'python.exe';
-            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'AppData' . DIRECTORY_SEPARATOR . 'Local' . DIRECTORY_SEPARATOR . 'Programs' . DIRECTORY_SEPARATOR . 'Python' . DIRECTORY_SEPARATOR . 'Python313' . DIRECTORY_SEPARATOR . 'python.exe';
-            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'AppData' . DIRECTORY_SEPARATOR . 'Local' . DIRECTORY_SEPARATOR . 'Programs' . DIRECTORY_SEPARATOR . 'Python' . DIRECTORY_SEPARATOR . 'Python312' . DIRECTORY_SEPARATOR . 'python.exe';
-            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'AppData' . DIRECTORY_SEPARATOR . 'Local' . DIRECTORY_SEPARATOR . 'Programs' . DIRECTORY_SEPARATOR . 'Python' . DIRECTORY_SEPARATOR . 'Python311' . DIRECTORY_SEPARATOR . 'python.exe';
-            $commands[] = $userProfile . DIRECTORY_SEPARATOR . 'AppData' . DIRECTORY_SEPARATOR . 'Local' . DIRECTORY_SEPARATOR . 'Programs' . DIRECTORY_SEPARATOR . 'Python' . DIRECTORY_SEPARATOR . 'Python310' . DIRECTORY_SEPARATOR . 'python.exe';
+            $commands[] = $userProfile.DIRECTORY_SEPARATOR.'anaconda3'.DIRECTORY_SEPARATOR.'python.exe';
+            $commands[] = $userProfile.DIRECTORY_SEPARATOR.'miniconda3'.DIRECTORY_SEPARATOR.'python.exe';
+            $commands[] = $userProfile.DIRECTORY_SEPARATOR.'AppData'.DIRECTORY_SEPARATOR.'Local'.DIRECTORY_SEPARATOR.'Programs'.DIRECTORY_SEPARATOR.'Python'.DIRECTORY_SEPARATOR.'Python313'.DIRECTORY_SEPARATOR.'python.exe';
+            $commands[] = $userProfile.DIRECTORY_SEPARATOR.'AppData'.DIRECTORY_SEPARATOR.'Local'.DIRECTORY_SEPARATOR.'Programs'.DIRECTORY_SEPARATOR.'Python'.DIRECTORY_SEPARATOR.'Python312'.DIRECTORY_SEPARATOR.'python.exe';
+            $commands[] = $userProfile.DIRECTORY_SEPARATOR.'AppData'.DIRECTORY_SEPARATOR.'Local'.DIRECTORY_SEPARATOR.'Programs'.DIRECTORY_SEPARATOR.'Python'.DIRECTORY_SEPARATOR.'Python311'.DIRECTORY_SEPARATOR.'python.exe';
+            $commands[] = $userProfile.DIRECTORY_SEPARATOR.'AppData'.DIRECTORY_SEPARATOR.'Local'.DIRECTORY_SEPARATOR.'Programs'.DIRECTORY_SEPARATOR.'Python'.DIRECTORY_SEPARATOR.'Python310'.DIRECTORY_SEPARATOR.'python.exe';
         }
-        
+
         $output = '';
         $success = false;
         $errors = [];
@@ -120,11 +125,12 @@ class DashboardController extends Controller
             }
         }
 
-        if (!$success) {
-            \Illuminate\Support\Facades\Log::error("Python ETL failed. Tried commands with errors: " . json_encode($errors, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+        if (! $success) {
+            Log::error('Python ETL failed. Tried commands with errors: '.json_encode($errors, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
             // If execution failed, let's write a mock/default JSON fallback so the app still renders
             $this->writeFallbackAnalytics();
-            return "Fallaron todos los ejecutables de Python.";
+
+            return 'Fallaron todos los ejecutables de Python.';
         }
 
         return $output;
@@ -136,31 +142,35 @@ class DashboardController extends Controller
     private function writeFallbackAnalytics()
     {
         $analyticsPath = storage_path('app/analytics.json');
-        
+
         // Count database metrics in PHP as a fallback
-        $totalUsers = \App\Models\User::count();
-        $totalDogs = \App\Models\Dog::count();
-        $totalRequests = \App\Models\CareRequest::count();
-        $activeRequests = \App\Models\CareRequest::whereIn('status', ['pending', 'accepted'])
+        $totalUsers = User::count();
+        $totalDogs = Dog::count();
+        $totalRequests = CareRequest::count();
+        $activeRequests = CareRequest::whereIn('status', ['pending', 'accepted'])
             ->where('end_date', '>=', now()->toDateString())
             ->count();
-        $totalReviews = \App\Models\Review::count();
-        $avgRating = \App\Models\Review::avg('rating') ?? 0.0;
-        
-        $totalVolume = \App\Models\Payment::whereIn('status', ['released', 'escrow'])->sum('amount');
-        $fees = \App\Models\Payment::whereIn('status', ['released', 'escrow'])->sum('fee');
-        $escrow = \App\Models\Payment::where('status', 'escrow')->sum('amount');
-        $released = \App\Models\Payment::where('status', 'released')->sum('amount');
-        $refunded = \App\Models\Payment::where('status', 'refunded')->sum('amount');
+        $totalReviews = Review::count();
+        $avgRating = Review::avg('rating') ?? 0.0;
 
-        // Dog sizes distribution
-        $dogSizes = \App\Models\Dog::select('size', \DB::raw('count(*) as count'))
+        $totalVolume = Payment::whereIn('status', ['released', 'escrow'])->sum('amount');
+        $fees = Payment::whereIn('status', ['released', 'escrow'])->sum('fee');
+        $escrow = Payment::where('status', 'escrow')->sum('amount');
+        $released = Payment::where('status', 'released')->sum('amount');
+        $refunded = Payment::where('status', 'refunded')->sum('amount');
+
+        // Dog sizes distribution (case-insensitive normalization)
+        $rawDogSizes = Dog::select('size', \DB::raw('count(*) as count'))
             ->groupBy('size')
-            ->pluck('count', 'size')
-            ->toArray();
+            ->get();
+        $dogSizes = [];
+        foreach ($rawDogSizes as $row) {
+            $normSz = strtolower(trim($row->size));
+            $dogSizes[$normSz] = ($dogSizes[$normSz] ?? 0) + $row->count;
+        }
 
         // Request status distribution
-        $requestStatuses = \App\Models\CareRequest::select('status', \DB::raw('count(*) as count'))
+        $requestStatuses = CareRequest::select('status', \DB::raw('count(*) as count'))
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
@@ -180,7 +190,7 @@ class DashboardController extends Controller
             'dog_sizes' => $dogSizes,
             'request_statuses' => $requestStatuses,
             'charts_generated' => false, // fallback mode
-            'is_fallback' => true
+            'is_fallback' => true,
         ];
 
         File::ensureDirectoryExists(dirname($analyticsPath));

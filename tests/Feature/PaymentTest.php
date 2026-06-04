@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\CareRequest;
 use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,7 +19,7 @@ class PaymentTest extends TestCase
     {
         $owner = User::factory()->create();
         $caretaker = User::factory()->create();
-        
+
         $careRequest = CareRequest::create([
             'user_id' => $owner->id,
             'start_date' => now()->addDays(1)->toDateString(),
@@ -50,7 +50,7 @@ class PaymentTest extends TestCase
         $owner = User::factory()->create();
         $otherUser = User::factory()->create();
         $caretaker = User::factory()->create();
-        
+
         $careRequest = CareRequest::create([
             'user_id' => $owner->id,
             'start_date' => now()->addDays(1)->toDateString(),
@@ -77,7 +77,7 @@ class PaymentTest extends TestCase
     {
         $owner = User::factory()->create();
         $caretaker = User::factory()->create();
-        
+
         $careRequest = CareRequest::create([
             'user_id' => $owner->id,
             'start_date' => now()->addDays(1)->toDateString(),
@@ -121,7 +121,7 @@ class PaymentTest extends TestCase
     {
         $owner = User::factory()->create();
         $caretaker = User::factory()->create();
-        
+
         $careRequest = CareRequest::create([
             'user_id' => $owner->id,
             'start_date' => now()->addDays(1)->toDateString(),
@@ -165,7 +165,7 @@ class PaymentTest extends TestCase
     {
         $owner = User::factory()->create();
         $caretaker = User::factory()->create();
-        
+
         $careRequest = CareRequest::create([
             'user_id' => $owner->id,
             'start_date' => now()->addDays(1)->toDateString(),
@@ -283,7 +283,7 @@ class PaymentTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('payments.wallet');
-        
+
         // Assert view variables
         $response->assertViewHas('availableBalance', 45.00); // 45.00 released
         $response->assertViewHas('escrowBalance', 180.00);   // 180.00 escrow

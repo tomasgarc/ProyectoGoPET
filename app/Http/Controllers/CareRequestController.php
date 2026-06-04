@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\CareRequest;
-use App\Models\User;
 use App\Models\Chat;
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class CareRequestController extends Controller
 {
@@ -56,6 +56,7 @@ class CareRequestController extends Controller
     public function create()
     {
         $dogs = auth()->user()->dogs;
+
         return view('care_requests.create', compact('dogs'));
     }
 
@@ -92,9 +93,9 @@ class CareRequestController extends Controller
     public function show(CareRequest $careRequest)
     {
         $careRequest->load(['dogs', 'user', 'acceptedBy', 'payment']);
-        
+
         $users = [];
-        if ($careRequest->user_id === auth()->id() && $careRequest->status === 'pending' && !$careRequest->isFinalized()) {
+        if ($careRequest->user_id === auth()->id() && $careRequest->status === 'pending' && ! $careRequest->isFinalized()) {
             // Only allow selecting users who have initiated a chat for this care request
             $chatUserIds = Chat::where('care_request_id', $careRequest->id)->pluck('user_id');
             $users = User::whereIn('id', $chatUserIds)->orderBy('name')->get();
@@ -120,7 +121,7 @@ class CareRequestController extends Controller
 
         // Enforce that the accepted user must have opened a chat for this care request
         $chatUserIds = Chat::where('care_request_id', $careRequest->id)->pluck('user_id')->toArray();
-        if (!in_array($request->accepted_by, $chatUserIds)) {
+        if (! in_array($request->accepted_by, $chatUserIds)) {
             return back()->with('error', 'Solo puedes elegir a un cuidador que te haya contactado previamente por mensajes.');
         }
 
@@ -142,13 +143,13 @@ class CareRequestController extends Controller
         $today = now()->toDateString();
 
         // Finalized requests created by the user OR accepted by the user
-        $finalizedRequests = CareRequest::where(function($query) {
-                $query->where('user_id', auth()->id())
-                      ->orWhere('accepted_by', auth()->id());
-            })
-            ->where(function($query) use ($today) {
+        $finalizedRequests = CareRequest::where(function ($query) {
+            $query->where('user_id', auth()->id())
+                ->orWhere('accepted_by', auth()->id());
+        })
+            ->where(function ($query) use ($today) {
                 $query->where('end_date', '<', $today)
-                      ->orWhere('status', 'finalized');
+                    ->orWhere('status', 'finalized');
             })
             ->with(['dogs', 'user', 'acceptedBy'])
             ->latest()

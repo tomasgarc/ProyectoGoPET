@@ -5,7 +5,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        <!-- SEO Meta Tags -->
         <title>GoPET - Cuidado de Perros con Confianza</title>
+        <meta name="description" content="GoPET conecta a dueños de perros con cuidadores locales de total confianza. Con pagos protegidos en depósito de garantía y valoraciones verificadas.">
+        <meta name="keywords" content="cuidado de perros, paseador de perros, gopet, alojamiento de mascotas, cuidadores de confianza, residencia canina">
+        <meta name="author" content="GoPET Intermodular">
+        <meta name="robots" content="index, follow">
+
+        <!-- OpenGraph Protocol -->
+        <meta property="og:title" content="GoPET - Cuidado de Perros con Confianza">
+        <meta property="og:description" content="Encuentra cuidadores locales verificados para tus mascotas con la tranquilidad del pago en custodia segura.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ url('/') }}">
+        <meta property="og:image" content="{{ asset('favicon.png') }}">
+
+        <!-- Sindicación RSS -->
+        <link rel="alternate" type="application/rss+xml" title="Feed de Peticiones Activas - GoPET" href="{{ route('feeds.care-requests') }}">
 
         <!-- Favicons -->
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">

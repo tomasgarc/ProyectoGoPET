@@ -14,7 +14,7 @@ class DashboardTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Clean up analytics file before each test
         $analyticsPath = storage_path('app/analytics.json');
         if (File::exists($analyticsPath)) {
@@ -29,7 +29,7 @@ class DashboardTest extends TestCase
         if (File::exists($analyticsPath)) {
             File::delete($analyticsPath);
         }
-        
+
         parent::tearDown();
     }
 
@@ -78,7 +78,7 @@ class DashboardTest extends TestCase
         $response->assertSessionHas('success');
 
         $this->assertTrue(File::exists($analyticsPath));
-        
+
         $stats = json_decode(File::get($analyticsPath), true);
         $this->assertIsArray($stats);
         $this->assertArrayHasKey('total_users', $stats);

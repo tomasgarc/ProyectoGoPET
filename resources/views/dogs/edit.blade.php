@@ -39,10 +39,10 @@
                             <div>
                                 <x-input-label for="size" :value="__('Tamaño')" class="text-xs font-black uppercase text-accent-600 tracking-wider mb-1.5" />
                                 <select id="size" name="size" class="block w-full border-brand-200/80 focus:border-brand-500 focus:ring-brand-500/20 rounded-2xl shadow-sm text-accent-950 bg-white placeholder-accent-400 transition-all duration-150 py-2.5 px-3">
-                                    <option value="Pequeño" {{ $dog->size == 'Pequeño' ? 'selected' : '' }}>{{ __('Pequeño') }}</option>
-                                    <option value="Mediano" {{ $dog->size == 'Mediano' ? 'selected' : '' }}>{{ __('Mediano') }}</option>
-                                    <option value="Grande" {{ $dog->size == 'Grande' ? 'selected' : '' }}>{{ __('Grande') }}</option>
-                                    <option value="Gigante" {{ $dog->size == 'Gigante' ? 'selected' : '' }}>{{ __('Gigante') }}</option>
+                                    <option value="pequeño" {{ strtolower($dog->size) == 'pequeño' ? 'selected' : '' }}>{{ __('Pequeño') }}</option>
+                                    <option value="mediano" {{ strtolower($dog->size) == 'mediano' ? 'selected' : '' }}>{{ __('Mediano') }}</option>
+                                    <option value="grande" {{ strtolower($dog->size) == 'grande' ? 'selected' : '' }}>{{ __('Grande') }}</option>
+                                    <option value="gigante" {{ strtolower($dog->size) == 'gigante' ? 'selected' : '' }}>{{ __('Gigante') }}</option>
                                 </select>
                                 <x-input-error :messages="$errors->get('size')" class="mt-2" />
                             </div>

@@ -49,6 +49,7 @@ class CareRequest extends Model
         if ($this->isFinalized()) {
             return 'finalized';
         }
+
         return $this->status;
     }
 
@@ -58,6 +59,7 @@ class CareRequest extends Model
     public function getStatusLabel(): string
     {
         $status = $this->getResolvedStatus();
+
         return match ($status) {
             'pending' => 'Normal',
             'accepted' => 'Aceptada',
@@ -87,14 +89,14 @@ class CareRequest extends Model
      */
     public function canBeReviewedBy($user): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
         $userId = is_numeric($user) ? $user : $user->id;
 
         // Care request must be finalized
-        if (!$this->isFinalized()) {
+        if (! $this->isFinalized()) {
             return false;
         }
 
@@ -104,7 +106,7 @@ class CareRequest extends Model
         }
 
         // Must not have left a review already
-        return !$this->reviews()->where('reviewer_id', $userId)->exists();
+        return ! $this->reviews()->where('reviewer_id', $userId)->exists();
     }
 
     /**
@@ -112,7 +114,7 @@ class CareRequest extends Model
      */
     public function getReviewBy($user)
     {
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 

@@ -1,0 +1,54 @@
+name: GoPET CI
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+
+jobs:
+  laravel-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout del código fuente
+      uses: actions/checkout@v4
+
+    - name: Configurar PHP en el Runner
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, xml, ctype, iconv, mysql, sqlite, pdo_sqlite
+        coverage: none
+
+    - name: Copiar variables de entorno
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+    - name: Instalar dependencias de Composer (Backend)
+      run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+    - name: Generar clave única de aplicación
+      run: php artisan key:generate
+
+    - name: Establecer permisos de directorios
+      run: chmod -R 777 storage bootstrap/cache
+
+    - name: Preparar base de datos SQLite para tests
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
+
+    - name: Ejecutar migraciones de base de datos
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: php artisan migrate --force
+
+    - name: Control de Calidad: Linting de código con Laravel Pint (Green Code)
+      run: ./vendor/bin/pint --test
+
+    - name: Ejecutar batería de pruebas unitarias y de integración (PHPUnit)
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: php artisan test

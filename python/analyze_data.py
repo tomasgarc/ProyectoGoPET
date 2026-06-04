@@ -116,9 +116,16 @@ def extract_and_transform(conn):
     stats['released_amount'] = payment_breakdown.get('released', 0.0)
     stats['refunded_amount'] = payment_breakdown.get('refunded', 0.0)
     
-    # 5. Dog Sizes Distribution
+    # 5. Dog Sizes Distribution (Case-insensitive normalization)
     cursor.execute("SELECT size, COUNT(*) FROM dogs GROUP BY size")
-    stats['dog_sizes'] = dict(cursor.fetchall())
+    raw_sizes = cursor.fetchall()
+    dog_sizes = {}
+    for sz, count in raw_sizes:
+        if sz:
+            norm_sz = sz.strip().lower()
+            dog_sizes[norm_sz] = dog_sizes.get(norm_sz, 0) + count
+    stats['dog_sizes'] = dog_sizes
+
     
     # 6. Request Status Distribution
     cursor.execute("SELECT status, COUNT(*) FROM care_requests GROUP BY status")

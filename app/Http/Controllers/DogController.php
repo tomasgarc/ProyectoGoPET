@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Dog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class DogController extends Controller
 {
@@ -12,6 +14,7 @@ class DogController extends Controller
     public function index()
     {
         $dogs = auth()->user()->dogs;
+
         return view('dogs.index', compact('dogs'));
     }
 
@@ -38,13 +41,16 @@ class DogController extends Controller
 
         $data = $request->all();
         $data['user_id'] = auth()->id();
+        if (isset($data['size'])) {
+            $data['size'] = strtolower(trim($data['size']));
+        }
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('dogs', 'public');
             $data['photo'] = $path;
         }
 
-        \App\Models\Dog::create($data);
+        Dog::create($data);
 
         return redirect()->route('dogs.index')->with('success', 'Perro añadido correctamente.');
     }
@@ -55,6 +61,7 @@ class DogController extends Controller
     public function edit(string $id)
     {
         $dog = auth()->user()->dogs()->findOrFail($id);
+
         return view('dogs.edit', compact('dog'));
     }
 
@@ -74,11 +81,14 @@ class DogController extends Controller
         ]);
 
         $data = $request->all();
+        if (isset($data['size'])) {
+            $data['size'] = strtolower(trim($data['size']));
+        }
 
         if ($request->hasFile('photo')) {
             // Delete old photo if exists
             if ($dog->photo) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($dog->photo);
+                Storage::disk('public')->delete($dog->photo);
             }
             $path = $request->file('photo')->store('dogs', 'public');
             $data['photo'] = $path;
@@ -95,9 +105,9 @@ class DogController extends Controller
     public function destroy(string $id)
     {
         $dog = auth()->user()->dogs()->findOrFail($id);
-        
+
         if ($dog->photo) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($dog->photo);
+            Storage::disk('public')->delete($dog->photo);
         }
 
         $dog->delete();

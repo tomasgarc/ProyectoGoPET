@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Dog;
 use App\Models\CareRequest;
 use App\Models\Chat;
+use App\Models\Dog;
 use App\Models\Message;
 use App\Models\Payment;
 use App\Models\Review;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon;
 
 class PlatformSeeder extends Seeder
 {

@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gopet_app
+    ports:
+      - "8080:80"
+    volumes:
+      # Montar el código local para desarrollo caliente (hot reload)
+      - .:/var/www/html
+      # Evitar que los directorios locales de vendor y node_modules se pisen con el contenedor
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_KEY=SomeRandomStringWith32CharactersOrMore
+      - DB_CONNECTION=sqlite
+      - DB_DATABASE=database/database.sqlite
