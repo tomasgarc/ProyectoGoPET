@@ -21,10 +21,10 @@ if os.path.exists(user_site_path) and user_site_path not in sys.path:
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 # Ensure USERPROFILE / HOME environment variables are defined so matplotlib
-# can find a home directory to write its cache. XAMPP/Apache doesn't provide these by default.
-if 'USERPROFILE' not in os.environ and 'HOME' not in os.environ:
-    os.environ['USERPROFILE'] = os.path.join(BASE_DIR, 'storage')
-    os.environ['HOME'] = os.path.join(BASE_DIR, 'storage')
+# can find a home directory to write its cache. XAMPP/Apache doesn't provide these by default,
+# or provides invalid/restricted paths.
+os.environ['USERPROFILE'] = os.path.join(BASE_DIR, 'storage')
+os.environ['HOME'] = os.path.join(BASE_DIR, 'storage')
 
 ENV_PATH = os.path.join(BASE_DIR, '.env')
 OUTPUT_JSON = os.path.join(BASE_DIR, 'storage', 'app', 'analytics.json')
@@ -53,14 +53,28 @@ def parse_env(file_path):
     return env
 
 def get_database_connection(env):
-    """Determines and establishes connection to the SQLite database."""
+    """Determines and establishes connection to the SQLite or MySQL database."""
     db_conn = env.get('DB_CONNECTION', 'sqlite')
-    db_name = env.get('DB_DATABASE', 'database/database.sqlite')
     
-    if db_conn != 'sqlite':
-        print(f"Warning: env specifies DB_CONNECTION={db_conn}. Falling back to SQLite for local analysis.")
+    if db_conn == 'mysql':
+        import mysql.connector
+        db_host = env.get('DB_HOST', '127.0.0.1')
+        db_port = int(env.get('DB_PORT', '3306'))
+        db_name = env.get('DB_DATABASE', 'proyectogopet')
+        db_user = env.get('DB_USERNAME', 'root')
+        db_pass = env.get('DB_PASSWORD', '')
         
+        print(f"Connecting to MySQL database: {db_name} on {db_host}:{db_port}")
+        return mysql.connector.connect(
+            host=db_host,
+            port=db_port,
+            database=db_name,
+            user=db_user,
+            password=db_pass
+        )
+
     # Resolve SQLite path
+    db_name = env.get('DB_DATABASE', 'database/database.sqlite')
     if os.path.isabs(db_name):
         db_path = db_name
     else:
@@ -78,6 +92,8 @@ def extract_and_transform(conn):
     today_str = datetime.now().strftime('%Y-%m-%d')
     stats = {}
     
+    is_mysql = 'MySQL' in conn.__class__.__name__
+    
     # 1. Row Counts
     cursor.execute("SELECT COUNT(*) FROM users")
     stats['total_users'] = cursor.fetchone()[0]
@@ -89,29 +105,30 @@ def extract_and_transform(conn):
     stats['total_requests'] = cursor.fetchone()[0]
     
     # 2. Active Care Requests
-    cursor.execute("SELECT COUNT(*) FROM care_requests WHERE status IN ('pending', 'accepted') AND end_date >= ?", (today_str,))
+    placeholder = '%s' if is_mysql else '?'
+    cursor.execute(f"SELECT COUNT(*) FROM care_requests WHERE status IN ('pending', 'accepted') AND end_date >= {placeholder}", (today_str,))
     stats['active_requests'] = cursor.fetchone()[0]
     
     # 3. Reviews and Ratings
     cursor.execute("SELECT AVG(rating), COUNT(*) FROM reviews")
     avg_rating, reviews_count = cursor.fetchone()
-    stats['average_rating'] = round(avg_rating, 2) if avg_rating is not None else 0.0
+    stats['average_rating'] = round(float(avg_rating), 2) if avg_rating is not None else 0.0
     stats['total_reviews'] = reviews_count
     
     # 4. Financial Metrics (Payments)
     # Total volume (released + escrow)
     cursor.execute("SELECT SUM(amount) FROM payments WHERE status IN ('released', 'escrow')")
     val = cursor.fetchone()[0]
-    stats['total_volume'] = round(val, 2) if val is not None else 0.0
+    stats['total_volume'] = round(float(val), 2) if val is not None else 0.0
     
     # Platform commissions (total fees from released + escrow)
     cursor.execute("SELECT SUM(fee) FROM payments WHERE status IN ('released', 'escrow')")
     val = cursor.fetchone()[0]
-    stats['platform_fees'] = round(val, 2) if val is not None else 0.0
+    stats['platform_fees'] = round(float(val), 2) if val is not None else 0.0
     
     # Payment status breakdowns
     cursor.execute("SELECT status, SUM(amount) FROM payments GROUP BY status")
-    payment_breakdown = {status: round(amt, 2) for status, amt in cursor.fetchall()}
+    payment_breakdown = {status: round(float(amt), 2) for status, amt in cursor.fetchall() if amt is not None}
     stats['escrow_amount'] = payment_breakdown.get('escrow', 0.0)
     stats['released_amount'] = payment_breakdown.get('released', 0.0)
     stats['refunded_amount'] = payment_breakdown.get('refunded', 0.0)
@@ -126,7 +143,6 @@ def extract_and_transform(conn):
             dog_sizes[norm_sz] = dog_sizes.get(norm_sz, 0) + count
     stats['dog_sizes'] = dog_sizes
 
-    
     # 6. Request Status Distribution
     cursor.execute("SELECT status, COUNT(*) FROM care_requests GROUP BY status")
     stats['request_statuses'] = dict(cursor.fetchall())
@@ -136,13 +152,16 @@ def extract_and_transform(conn):
     stats['popular_breeds'] = dict(cursor.fetchall())
     
     # 8. Timeline (Care requests per month)
-    cursor.execute("SELECT strftime('%Y-%m', start_date) as month, COUNT(*) FROM care_requests GROUP BY month ORDER BY month")
+    if is_mysql:
+        cursor.execute("SELECT DATE_FORMAT(start_date, '%Y-%m') as month, COUNT(*) FROM care_requests GROUP BY month ORDER BY month")
+    else:
+        cursor.execute("SELECT strftime('%Y-%m', start_date) as month, COUNT(*) FROM care_requests GROUP BY month ORDER BY month")
     stats['requests_timeline'] = dict(cursor.fetchall())
     
     # 9. Additional Metrics: Average Care Request Price
     cursor.execute("SELECT AVG(price) FROM care_requests")
     val = cursor.fetchone()[0]
-    stats['average_price'] = round(val, 2) if val is not None else 0.0
+    stats['average_price'] = round(float(val), 2) if val is not None else 0.0
     
     return stats
 

@@ -6,13 +6,15 @@
             </h2>
             
             <!-- Python ETL Trigger Button -->
-            <form action="{{ route('dashboard.update-analytics') }}" method="POST">
-                @csrf
-                <button type="submit" class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-sm rounded-2xl transition-all duration-200 hover:scale-[1.02] shadow-md shadow-brand-100/50">
-                    <span class="mr-2">🐍</span>
-                    {{ __('Actualizar Estadísticas (Python)') }}
-                </button>
-            </form>
+            @if (Auth::user()->isAdmin())
+                <form action="{{ route('dashboard.update-analytics') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-sm rounded-2xl transition-all duration-200 hover:scale-[1.02] shadow-md shadow-brand-100/50">
+                        <span class="mr-2">🐍</span>
+                        {{ __('Actualizar Estadísticas (Python)') }}
+                    </button>
+                </form>
+            @endif
         </div>
     </x-slot>
 
@@ -76,7 +78,7 @@
             </div>
 
             <!-- Python Global Analysis & Metrics (ETL Result) -->
-            @if ($stats)
+            @if (Auth::user()->isAdmin() && $stats)
                 <div class="bg-white border border-brand-100/50 rounded-3xl p-8 shadow-md space-y-8">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-brand-50 pb-6">
                         <div>

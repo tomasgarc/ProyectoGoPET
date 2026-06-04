@@ -22,10 +22,10 @@ class UserSeeder extends Seeder
         ]);
 
         User::create([
-            'name' => 'Owner User',
-            'email' => 'owner@gopet.com',
+            'name' => 'Regular User',
+            'email' => 'user@gopet.com',
             'password' => Hash::make('password'),
-            'role' => 'owner',
+            'role' => 'user',
             'email_verified_at' => now(),
         ]);
     }

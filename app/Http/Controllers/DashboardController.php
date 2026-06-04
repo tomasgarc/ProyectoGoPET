@@ -19,17 +19,21 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $analyticsPath = storage_path('app/analytics.json');
         $stats = null;
 
-        // Try to read analytics if they exist, otherwise try to run the script
-        if (File::exists($analyticsPath)) {
-            $stats = json_decode(File::get($analyticsPath), true);
-        } else {
-            // Run the python script to generate the analytics
-            $this->runPythonScript();
+        // Only load and generate stats if user is an admin
+        if (auth()->user()->isAdmin()) {
+            $analyticsPath = storage_path('app/analytics.json');
+            
+            // Try to read analytics if they exist, otherwise try to run the script
             if (File::exists($analyticsPath)) {
                 $stats = json_decode(File::get($analyticsPath), true);
+            } else {
+                // Run the python script to generate the analytics
+                $this->runPythonScript();
+                if (File::exists($analyticsPath)) {
+                    $stats = json_decode(File::get($analyticsPath), true);
+                }
             }
         }
 
@@ -41,6 +45,10 @@ class DashboardController extends Controller
      */
     public function updateAnalytics()
     {
+        if (! auth()->user()->isAdmin()) {
+            abort(403, 'Acción no autorizada.');
+        }
+
         $output = $this->runPythonScript();
 
         if (str_contains($output, 'Error') && ! str_contains($output, 'Connecting to SQLite')) {
@@ -110,7 +118,10 @@ class DashboardController extends Controller
 
         foreach ($commands as $cmd) {
             try {
-                $process = new Process([$cmd, $scriptPath]);
+                $process = new Process([$cmd, $scriptPath], null, array_merge($_SERVER, [
+                    'SystemRoot' => getenv('SystemRoot') ?: 'C:\\Windows',
+                    'windir' => getenv('windir') ?: 'C:\\Windows',
+                ]));
                 $process->run();
 
                 if ($process->isSuccessful()) {

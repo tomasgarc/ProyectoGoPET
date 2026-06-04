@@ -59,12 +59,13 @@ class DashboardTest extends TestCase
     }
 
     /**
-     * Test that the update-analytics endpoint runs and updates the analytics file.
+     * Test that the update-analytics endpoint runs and updates the analytics file for admin users.
      */
     public function test_update_analytics_updates_json_file(): void
     {
         $user = User::factory()->create([
             'email_verified_at' => now(),
+            'role' => 'admin',
         ]);
 
         $analyticsPath = storage_path('app/analytics.json');
@@ -84,5 +85,22 @@ class DashboardTest extends TestCase
         $this->assertArrayHasKey('total_users', $stats);
         $this->assertArrayHasKey('total_dogs', $stats);
         $this->assertArrayHasKey('total_requests', $stats);
+    }
+
+    /**
+     * Test that non-admin users cannot update analytics.
+     */
+    public function test_non_admin_cannot_update_analytics(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+            'role' => 'user',
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->post('/dashboard/update-analytics');
+
+        $response->assertStatus(403);
     }
 }

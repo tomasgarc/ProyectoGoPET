@@ -18,5 +18,9 @@ services:
       - APP_ENV=local
       - APP_DEBUG=true
       - APP_KEY=SomeRandomStringWith32CharactersOrMore
-      - DB_CONNECTION=sqlite
-      - DB_DATABASE=database/database.sqlite
+      - DB_CONNECTION=mysql
+      - DB_HOST=host.docker.internal
+      - DB_PORT=3306
+      - DB_DATABASE=proyectogopet
+      - DB_USERNAME=root
+      - DB_PASSWORD=

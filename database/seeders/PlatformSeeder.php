@@ -31,12 +31,12 @@ class PlatformSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        // Owners
+        // Users
         $users['juan'] = User::create([
             'name' => 'Juan Pérez',
             'email' => 'juan@gopet.com',
             'password' => Hash::make('password'),
-            'role' => 'owner',
+            'role' => 'user',
             'email_verified_at' => now(),
         ]);
 
@@ -44,7 +44,7 @@ class PlatformSeeder extends Seeder
             'name' => 'María Gómez',
             'email' => 'maria@gopet.com',
             'password' => Hash::make('password'),
-            'role' => 'owner',
+            'role' => 'user',
             'email_verified_at' => now(),
         ]);
 
@@ -52,7 +52,7 @@ class PlatformSeeder extends Seeder
             'name' => 'Carlos López',
             'email' => 'carlos@gopet.com',
             'password' => Hash::make('password'),
-            'role' => 'owner',
+            'role' => 'user',
             'email_verified_at' => now(),
         ]);
 
@@ -60,7 +60,7 @@ class PlatformSeeder extends Seeder
             'name' => 'Ana Martínez',
             'email' => 'ana@gopet.com',
             'password' => Hash::make('password'),
-            'role' => 'owner',
+            'role' => 'user',
             'email_verified_at' => now(),
         ]);
 
@@ -68,16 +68,16 @@ class PlatformSeeder extends Seeder
             'name' => 'Elena Ruiz',
             'email' => 'elena@gopet.com',
             'password' => Hash::make('password'),
-            'role' => 'owner',
+            'role' => 'user',
             'email_verified_at' => now(),
         ]);
 
-        // Caretakers
+        // Caretakers (now also users)
         $users['sofia'] = User::create([
             'name' => 'Sofía Rodríguez',
             'email' => 'sofia@gopet.com',
             'password' => Hash::make('password'),
-            'role' => 'caretaker',
+            'role' => 'user',
             'email_verified_at' => now(),
         ]);
 
@@ -85,7 +85,7 @@ class PlatformSeeder extends Seeder
             'name' => 'Diego Fernández',
             'email' => 'diego@gopet.com',
             'password' => Hash::make('password'),
-            'role' => 'caretaker',
+            'role' => 'user',
             'email_verified_at' => now(),
         ]);
 
@@ -93,7 +93,7 @@ class PlatformSeeder extends Seeder
             'name' => 'Laura Sánchez',
             'email' => 'laura@gopet.com',
             'password' => Hash::make('password'),
-            'role' => 'caretaker',
+            'role' => 'user',
             'email_verified_at' => now(),
         ]);
 
@@ -101,7 +101,7 @@ class PlatformSeeder extends Seeder
             'name' => 'Pablo Muñoz',
             'email' => 'pablo@gopet.com',
             'password' => Hash::make('password'),
-            'role' => 'caretaker',
+            'role' => 'user',
             'email_verified_at' => now(),
         ]);
 

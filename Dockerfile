@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     sqlite3 \
     libsqlite3-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd zip pdo pdo_sqlite
+    && docker-php-ext-install gd zip pdo pdo_sqlite pdo_mysql
 
 # Habilitar el módulo rewrite de Apache
 RUN a2enmod rewrite
