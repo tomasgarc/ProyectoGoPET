@@ -45,6 +45,17 @@
     <div class="py-12 bg-gradient-to-b from-accent-50 via-brand-50/10 to-accent-100 min-h-screen">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             
+            @if (session('error'))
+                <div class="bg-rose-50 border border-rose-200 text-rose-800 px-5 py-4 rounded-3xl relative mb-8 flex flex-col shadow-sm" role="alert">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span class="font-bold text-sm">{{ session('error') }}</span>
+                    </div>
+                </div>
+            @endif
+
             @if ($errors->any())
                 <div class="bg-rose-50 border border-rose-200 text-rose-800 px-5 py-4 rounded-3xl relative mb-8 flex flex-col shadow-sm" role="alert">
                     <div class="flex items-center mb-2">
@@ -184,31 +195,34 @@
                                             <div class="absolute inset-x-0 top-2 border-t border-amber-600/30 h-1"></div>
                                             <div class="absolute inset-x-0 bottom-2 border-b border-amber-600/30 h-1"></div>
                                         </div>
-                                        <!-- Marca dinámica de la tarjeta -->
-                                        <div id="card_brand_logo" class="text-right text-xs font-black italic text-brand-100 tracking-widest transition-all duration-300">
+                                        <!-- Marca de la tarjeta -->
+                                        <div id="card_brand_logo" class="text-right text-xs font-black italic text-brand-100 tracking-widest">
                                             GoPET Pay
                                         </div>
                                     </div>
 
-                                    <!-- Fila Media: Número -->
+                                    <!-- Fila Media: Estado Seguro -->
                                     <div class="my-3 text-center">
-                                        <div id="card_preview_number" class="text-lg tracking-widest text-slate-100 font-semibold highlight-idle">
-                                            •••• •••• •••• ••••
+                                        <div class="text-sm tracking-wide text-brand-200 font-bold uppercase flex items-center justify-center space-x-2">
+                                            <span>🔒 Pago 100% Seguro</span>
+                                        </div>
+                                        <div class="text-[10px] text-brand-350 mt-1 font-bold">
+                                            Conexión Segura vía Stripe
                                         </div>
                                     </div>
 
                                     <!-- Fila Inferior: Titular y Expiración -->
                                     <div class="flex justify-between items-end text-xs">
                                         <div class="max-w-[70%]">
-                                            <span class="text-[8px] uppercase tracking-widest text-brand-200 block mb-0.5 font-bold">{{ __('Titular') }}</span>
-                                            <div id="card_preview_name" class="font-bold uppercase truncate tracking-wider text-slate-100 highlight-idle text-[11px] sm:text-xs">
-                                                {{ __('Tu Nombre Aquí') }}
+                                            <span class="text-[8px] uppercase tracking-widest text-brand-200 block mb-0.5 font-bold">{{ __('Plataforma de Pago') }}</span>
+                                            <div class="font-bold uppercase truncate tracking-wider text-slate-100 text-[11px] sm:text-xs">
+                                                Stripe Gateway
                                             </div>
                                         </div>
                                         <div class="text-right font-sans">
-                                            <span class="text-[8px] uppercase tracking-widest text-brand-200 block mb-0.5 font-bold">{{ __('Vence') }}</span>
-                                            <div id="card_preview_expiry" class="font-bold text-slate-100 highlight-idle text-xs font-card">
-                                                MM/AA
+                                            <span class="text-[8px] uppercase tracking-widest text-brand-200 block mb-0.5 font-bold">{{ __('Certificado') }}</span>
+                                            <div class="font-bold text-slate-100 text-[10px] uppercase font-card">
+                                                PCI-DSS
                                             </div>
                                         </div>
                                     </div>
@@ -221,51 +235,19 @@
                                 <input type="hidden" name="caretaker_id" value="{{ $caretaker->id }}">
 
                                 <div class="grid grid-cols-1 gap-4 text-slate-700">
-                                    
-                                    <!-- Nombre del Titular -->
-                                    <div>
-                                        <label for="card_name" class="block text-[10px] font-black text-accent-500 uppercase tracking-widest mb-1.5">{{ __('Nombre en la Tarjeta') }}</label>
-                                        <input type="text" id="card_name" name="card_name" value="{{ old('card_name') }}" required
-                                            class="block w-full border-brand-200/80 focus:border-brand-500 focus:ring-0 text-sm font-semibold rounded-2xl py-2.5 px-3.5 placeholder-accent-300 transition glow-input bg-white text-accent-950"
-                                            placeholder="JUAN PEREZ GONZALEZ" autocomplete="cc-name">
-                                    </div>
-
-                                    <!-- Número de Tarjeta -->
-                                    <div>
-                                        <label for="card_number" class="block text-[10px] font-black text-accent-500 uppercase tracking-widest mb-1.5">{{ __('Número de Tarjeta') }}</label>
-                                        <div class="relative rounded-2xl">
-                                            <input type="text" id="card_number" name="card_number" value="{{ old('card_number') }}" required maxlength="19"
-                                                class="block w-full border-brand-200/80 focus:border-brand-500 focus:ring-0 text-sm font-semibold rounded-2xl py-2.5 px-3.5 placeholder-accent-300 transition glow-input pr-10 bg-white text-accent-950"
-                                                placeholder="4000 1234 5678 9010" autocomplete="cc-number">
-                                            <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-accent-400">
-                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                    <div class="bg-brand-50/60 border border-brand-100 rounded-2xl p-5 text-sm font-bold text-brand-900 space-y-4">
+                                        <div class="flex items-center space-x-3 text-brand-800">
+                                            <div class="bg-brand-500 text-white rounded-full p-1 flex-shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7" />
                                                 </svg>
                                             </div>
+                                            <span class="font-black text-xs uppercase tracking-wider text-brand-900">{{ __('Garantía de Pago Fideicomiso') }}</span>
                                         </div>
+                                        <p class="text-xs text-accent-600 leading-relaxed font-semibold">
+                                            {{ __('Al hacer clic en el botón de pago, serás redirigido a la pasarela oficial y segura de Stripe. Tus datos bancarios están totalmente protegidos y encriptados bajo la normativa PCI-DSS. GoPET retendrá de forma segura el importe y solo lo liberará al cuidador una vez que confirmes que el servicio de cuidado se ha completado correctamente.') }}
+                                        </p>
                                     </div>
-
-                                    <!-- Fila Expiración y CVV -->
-                                    <div class="grid grid-cols-2 gap-4">
-                                        
-                                        <!-- Vencimiento -->
-                                        <div>
-                                            <label for="card_expiry" class="block text-[10px] font-black text-accent-500 uppercase tracking-widest mb-1.5">{{ __('Vencimiento (MM/AA)') }}</label>
-                                            <input type="text" id="card_expiry" name="card_expiry" value="{{ old('card_expiry') }}" required maxlength="5"
-                                                class="block w-full border-brand-200/80 focus:border-brand-500 focus:ring-0 text-sm font-semibold rounded-2xl py-2.5 px-3.5 placeholder-accent-300 text-center transition glow-input bg-white text-accent-950"
-                                                placeholder="MM/AA" autocomplete="cc-exp">
-                                        </div>
-
-                                        <!-- CVV -->
-                                        <div>
-                                            <label for="card_cvv" class="block text-[10px] font-black text-accent-500 uppercase tracking-widest mb-1.5">{{ __('CVV / CVC') }}</label>
-                                            <input type="password" id="card_cvv" name="card_cvv" required maxlength="4"
-                                                class="block w-full border-brand-200/80 focus:border-brand-500 focus:ring-0 text-sm font-semibold rounded-2xl py-2.5 px-3.5 placeholder-accent-300 text-center transition glow-input bg-white text-accent-950"
-                                                placeholder="•••" autocomplete="cc-csc">
-                                        </div>
-
-                                    </div>
-
                                 </div>
 
                                 <!-- Factura/Ticket de Gastos Estilo Premium -->
@@ -291,11 +273,11 @@
                                 </div>
 
                                 <!-- Botón de Pago con Efecto Glow -->
-                                <button type="submit" class="w-full mt-6 inline-flex items-center justify-center px-6 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm uppercase tracking-wider rounded-2xl shadow-lg hover:shadow-brand-500/25 transition-all duration-300 transform active:scale-[0.98] hover:scale-[1.01]">
+                                <button type="submit" id="submit-btn" class="w-full mt-6 inline-flex items-center justify-center px-6 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm uppercase tracking-wider rounded-2xl shadow-lg hover:shadow-brand-500/25 transition-all duration-300 transform active:scale-[0.98] hover:scale-[1.01]">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                     </svg>
-                                    {{ __('Proceder al Pago Seguro') }}
+                                    {{ __('Proceder al Pago con Stripe') }}
                                 </button>
 
                             </form>
@@ -313,122 +295,29 @@
     <!-- Script de interactividad en Vanilla JS -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const cardNameInput = document.getElementById('card_name');
-            const cardNumberInput = document.getElementById('card_number');
-            const cardExpiryInput = document.getElementById('card_expiry');
-            const cardCvvInput = document.getElementById('card_cvv');
-            
-            const cardPreviewName = document.getElementById('card_preview_name');
-            const cardPreviewNumber = document.getElementById('card_preview_number');
-            const cardPreviewExpiry = document.getElementById('card_preview_expiry');
-            const cardBrandLogo = document.getElementById('card_brand_logo');
             const visualCard = document.getElementById('visual_card');
+            const submitBtn = document.getElementById('submit-btn');
+            const checkoutForm = document.getElementById('checkout-form');
 
-            // Detectar marca de tarjeta basándose en los dígitos
-            function updateCardBrand(number) {
-                const cleanNumber = number.replace(/\s/g, '');
-                if (cleanNumber.startsWith('4')) {
-                    cardBrandLogo.innerHTML = 'Visa';
-                    cardBrandLogo.style.color = '#38bdf8'; // light blue
-                } else if (cleanNumber.startsWith('5')) {
-                    cardBrandLogo.innerHTML = 'Mastercard';
-                    cardBrandLogo.style.color = '#fb923c'; // orange
-                } else {
-                    cardBrandLogo.innerHTML = 'GoPET Pay';
-                    cardBrandLogo.style.color = '#c7d2fe'; // indigo-200
-                }
-            }
-
-            // Nombre
-            cardNameInput.addEventListener('input', function (e) {
-                const val = e.target.value;
-                cardPreviewName.textContent = val.trim() ? val.toUpperCase() : 'TU NOMBRE AQUÍ';
+            // Efecto sutil al pasar por encima del botón de pago
+            submitBtn.addEventListener('mouseenter', () => {
+                visualCard.style.transform = 'perspective(1000px) rotateY(5deg) scale(1.02)';
             });
-
-            // Enfoques de Inputs -> Resaltar Campos en la Tarjeta
-            cardNameInput.addEventListener('focus', () => {
-                cardPreviewName.className = 'font-bold uppercase truncate tracking-wider text-slate-100 highlight-active';
-            });
-            cardNameInput.addEventListener('blur', () => {
-                cardPreviewName.className = 'font-bold uppercase truncate tracking-wider text-slate-100 highlight-idle';
-            });
-
-            // Tarjeta Número
-            cardNumberInput.addEventListener('input', function (e) {
-                let val = e.target.value.replace(/\D/g, '');
-                if (val.length > 16) {
-                    val = val.substring(0, 16);
-                }
-                
-                const groups = val.match(/.{1,4}/g);
-                const formatted = groups ? groups.join(' ') : '';
-                e.target.value = formatted;
-
-                updateCardBrand(formatted);
-
-                // Previsualizar
-                let preview = formatted;
-                while (preview.length < 19) {
-                    const nextDotIndex = preview.length;
-                    if (nextDotIndex === 4 || nextDotIndex === 9 || nextDotIndex === 14) {
-                        preview += ' ';
-                    } else {
-                        preview += '•';
-                    }
-                }
-                cardPreviewNumber.textContent = preview;
-            });
-
-            cardNumberInput.addEventListener('focus', () => {
-                cardPreviewNumber.className = 'text-lg tracking-widest text-slate-100 font-semibold highlight-active';
-            });
-            cardNumberInput.addEventListener('blur', () => {
-                cardPreviewNumber.className = 'text-lg tracking-widest text-slate-100 font-semibold highlight-idle';
-            });
-
-            // Tarjeta Expiración
-            cardExpiryInput.addEventListener('input', function (e) {
-                let val = e.target.value.replace(/\D/g, '');
-                if (val.length > 4) {
-                    val = val.substring(0, 4);
-                }
-                
-                if (val.length > 2) {
-                    val = val.substring(0, 2) + '/' + val.substring(2);
-                }
-                
-                e.target.value = val;
-
-                // Previsualizar
-                let preview = val;
-                if (preview.length === 0) {
-                    cardPreviewExpiry.textContent = 'MM/AA';
-                } else if (preview.length === 1) {
-                    cardPreviewExpiry.textContent = preview + 'M/AA';
-                } else if (preview.length === 2) {
-                    cardPreviewExpiry.textContent = preview + '/AA';
-                } else if (preview.length === 4) {
-                    cardPreviewExpiry.textContent = preview + 'A';
-                } else {
-                    cardPreviewExpiry.textContent = preview;
-                }
-            });
-
-            cardExpiryInput.addEventListener('focus', () => {
-                cardPreviewExpiry.className = 'font-bold text-slate-100 highlight-active text-xs font-card';
-            });
-            cardExpiryInput.addEventListener('blur', () => {
-                cardPreviewExpiry.className = 'font-bold text-slate-100 highlight-idle text-xs font-card';
-            });
-
-            // CVV hace rotar o inclinar la tarjeta ligeramente como efecto de diseño interactivo
-            cardCvvInput.addEventListener('focus', () => {
-                visualCard.style.transform = 'perspective(1000px) rotateY(15deg) scale(1.02)';
-                visualCard.style.boxShadow = '0 25px 50px -12px rgba(79, 138, 119, 0.25)';
-            });
-            cardCvvInput.addEventListener('blur', () => {
+            submitBtn.addEventListener('mouseleave', () => {
                 visualCard.style.transform = 'perspective(1000px) rotateY(0deg) scale(1)';
-                visualCard.style.boxShadow = '';
+            });
+
+            // Rotar y deshabilitar al enviar
+            checkoutForm.addEventListener('submit', () => {
+                visualCard.style.transform = 'perspective(1000px) rotateY(15deg) scale(0.98)';
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `
+                    <svg class="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24" fill="none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Redirigiendo a Stripe...
+                `;
             });
         });
     </script>

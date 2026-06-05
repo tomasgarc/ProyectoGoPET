@@ -71,7 +71,7 @@ class PaymentTest extends TestCase
     }
 
     /**
-     * Test that executing the checkout form creates a payment record in escrow.
+     * Test that executing the checkout form redirects to Stripe Checkout.
      */
     public function test_payment_processing_creates_escrow_payment(): void
     {
@@ -87,15 +87,66 @@ class PaymentTest extends TestCase
             'status' => 'pending',
         ]);
 
+        $mocks = $this->mockStripeClient();
+
+        $sessionObj = new \Stripe\Checkout\Session('cs_test_123');
+        $sessionObj->url = 'https://checkout.stripe.com/pay/cs_test_123';
+
+        $mocks['sessions']->expects($this->once())
+            ->method('create')
+            ->willReturn($sessionObj);
+
         $response = $this
             ->actingAs($owner)
             ->post(route('payments.process', $careRequest), [
                 'caretaker_id' => $caretaker->id,
-                'card_name' => 'John Doe',
-                'card_number' => '4000 1234 5678 9010',
-                'card_expiry' => '12/28',
-                'card_cvv' => '123',
             ]);
+
+        $response->assertRedirect('https://checkout.stripe.com/pay/cs_test_123');
+    }
+
+    /**
+     * Test that Stripe success redirect completes the payment and escrow.
+     */
+    public function test_stripe_success_redirect_completes_payment(): void
+    {
+        $owner = User::factory()->create();
+        $caretaker = User::factory()->create();
+
+        $careRequest = CareRequest::create([
+            'user_id' => $owner->id,
+            'start_date' => now()->addDays(1)->toDateString(),
+            'end_date' => now()->addDays(5)->toDateString(),
+            'price' => 120.00,
+            'description' => 'Test care request',
+            'status' => 'pending',
+        ]);
+
+        $mocks = $this->mockStripeClient();
+
+        $sessionObj = new \Stripe\Checkout\Session('cs_test_123');
+        $sessionObj->payment_status = 'paid';
+        $sessionObj->metadata = (object) [
+            'care_request_id' => $careRequest->id,
+            'caretaker_id' => $caretaker->id,
+            'user_id' => $owner->id,
+        ];
+        
+        $paymentIntentMock = new \Stripe\PaymentIntent('pi_test_123');
+        $paymentMethodMock = new \Stripe\PaymentMethod('pm_test_123');
+        $paymentMethodMock->type = 'card';
+        $paymentMethodMock->card = (object) ['last4' => '4242'];
+        $paymentIntentMock->payment_method = $paymentMethodMock;
+        $sessionObj->payment_intent = $paymentIntentMock;
+
+        $mocks['sessions']->expects($this->once())
+            ->method('retrieve')
+            ->with('cs_test_123', ['expand' => ['payment_intent.payment_method']])
+            ->willReturn($sessionObj);
+
+        $response = $this
+            ->actingAs($owner)
+            ->get(route('payments.success', $careRequest) . '?session_id=cs_test_123');
 
         $response->assertRedirect(route('care-requests.show', $careRequest));
         $response->assertSessionHas('success');
@@ -108,10 +159,10 @@ class PaymentTest extends TestCase
         $this->assertNotNull($payment);
         $this->assertEquals('escrow', $payment->status);
         $this->assertEquals(120.00, $payment->amount);
-        $this->assertEquals(12.00, $payment->fee); // 10% platform fee
+        $this->assertEquals(12.00, $payment->fee);
         $this->assertEquals(108.00, $payment->net_amount);
-        $this->assertEquals('9010', $payment->card_last_four);
-        $this->assertStringStartsWith('ch_', $payment->transaction_id);
+        $this->assertEquals('4242', $payment->card_last_four);
+        $this->assertEquals('cs_test_123', $payment->transaction_id);
     }
 
     /**
@@ -288,5 +339,43 @@ class PaymentTest extends TestCase
         $response->assertViewHas('availableBalance', 45.00); // 45.00 released
         $response->assertViewHas('escrowBalance', 180.00);   // 180.00 escrow
         $response->assertViewHas('totalSpent', 100.00);      // 100.00 spent
+    }
+
+    /**
+     * Helper to mock StripeClient and service layers.
+     */
+    protected function mockStripeClient()
+    {
+        $stripeMock = $this->getMockBuilder(\Stripe\StripeClient::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Create Checkout Service Mock
+        $checkoutMock = $this->getMockBuilder(\Stripe\Service\Checkout\CheckoutServiceFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Create Session Service Mock
+        $sessionsMock = $this->getMockBuilder(\Stripe\Service\Checkout\SessionService::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Bind mock relationships
+        $stripeMock->checkout = $checkoutMock;
+        $checkoutMock->sessions = $sessionsMock;
+
+        // Also mock Refunds Service for refund tests
+        $refundsMock = $this->getMockBuilder(\Stripe\Service\RefundService::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $stripeMock->refunds = $refundsMock;
+
+        $this->app->instance(\Stripe\StripeClient::class, $stripeMock);
+
+        return [
+            'stripe' => $stripeMock,
+            'sessions' => $sessionsMock,
+            'refunds' => $refundsMock,
+        ];
     }
 }

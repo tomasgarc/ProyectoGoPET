@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     // Payments & Escrow System
     Route::get('/care-requests/{care_request}/checkout', [PaymentController::class, 'checkout'])->name('payments.checkout');
     Route::post('/care-requests/{care_request}/pay', [PaymentController::class, 'processPayment'])->name('payments.process');
+    Route::get('/care-requests/{care_request}/payment-success', [PaymentController::class, 'paymentSuccess'])->name('payments.success');
     Route::post('/care-requests/{care_request}/release-payment', [PaymentController::class, 'releasePayment'])->name('payments.release');
     Route::post('/care-requests/{care_request}/refund-payment', [PaymentController::class, 'cancelAndRefund'])->name('payments.refund');
     Route::get('/wallet', [PaymentController::class, 'wallet'])->name('payments.wallet');
@@ -66,5 +67,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Stripe Webhook (No CSRF, outside auth middleware)
+Route::post('/stripe/webhook', [PaymentController::class, 'handleWebhook'])->name('stripe.webhook');
 
 require __DIR__.'/auth.php';

@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Stripe\StripeClient;
+use Stripe\Webhook;
 
 class PaymentController extends Controller
 {
@@ -43,7 +45,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Process the simulated payment.
+     * Process the payment via Stripe Checkout.
      */
     public function processPayment(CareRequest $careRequest, Request $request)
     {
@@ -58,50 +60,43 @@ class PaymentController extends Controller
 
         $request->validate([
             'caretaker_id' => ['required', 'exists:users,id', 'different:user_id'],
-            'card_name' => ['required', 'string', 'min:3'],
-            'card_number' => ['required', 'string', 'regex:#^[0-9\s]{13,19}$#'],
-            'card_expiry' => ['required', 'string', 'regex:#^(0[1-9]|1[0-2])/?([0-9]{2})$#'],
-            'card_cvv' => ['required', 'numeric', 'digits_between:3,4'],
-        ], [
-            'card_number.regex' => 'El número de tarjeta no es válido.',
-            'card_expiry.regex' => 'La fecha de expiración debe tener el formato MM/AA.',
-            'card_cvv.digits_between' => 'El CVV debe tener 3 o 4 dígitos.',
         ]);
 
         $caretakerId = $request->caretaker_id;
+        $amount = $careRequest->price;
 
-        // Start Transaction
-        DB::transaction(function () use ($careRequest, $caretakerId, $request) {
-            // Update Care Request
-            $careRequest->update([
-                'status' => 'accepted',
-                'accepted_by' => $caretakerId,
+        try {
+            $stripe = app(StripeClient::class);
+
+            $session = $stripe->checkout->sessions->create([
+                'payment_method_types' => ['card'],
+                'line_items' => [
+                    [
+                        'price_data' => [
+                            'currency' => 'eur',
+                            'product_data' => [
+                                'name' => 'Servicio de Cuidado de Mascotas - GoPET',
+                                'description' => 'Servicio de cuidado del ' . \Carbon\Carbon::parse($careRequest->start_date)->format('d/m/Y') . ' al ' . \Carbon\Carbon::parse($careRequest->end_date)->format('d/m/Y'),
+                            ],
+                            'unit_amount' => (int) round($amount * 100), // Stripe expects cents
+                        ],
+                        'quantity' => 1,
+                    ]
+                ],
+                'mode' => 'payment',
+                'success_url' => route('payments.success', $careRequest) . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('payments.checkout', [$careRequest, 'caretaker_id' => $caretakerId]),
+                'metadata' => [
+                    'care_request_id' => $careRequest->id,
+                    'caretaker_id' => $caretakerId,
+                    'user_id' => auth()->id(),
+                ],
             ]);
 
-            $amount = $careRequest->price;
-            $fee = round($amount * 0.10, 2);
-            $netAmount = $amount - $fee;
-
-            // Clean card number spaces
-            $cleanCard = str_replace(' ', '', $request->card_number);
-            $lastFour = substr($cleanCard, -4);
-
-            // Create Payment
-            Payment::create([
-                'care_request_id' => $careRequest->id,
-                'user_id' => auth()->id(),
-                'receiver_id' => $caretakerId,
-                'amount' => $amount,
-                'fee' => $fee,
-                'net_amount' => $netAmount,
-                'status' => 'escrow',
-                'card_last_four' => $lastFour,
-                'transaction_id' => 'ch_'.Str::random(20),
-            ]);
-        });
-
-        return redirect()->route('care-requests.show', $careRequest)
-            ->with('success', '¡Pago procesado con éxito! La reserva se ha confirmado y el dinero está en depósito de garantía.');
+            return redirect($session->url);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al iniciar el pago con Stripe: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -136,7 +131,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Cancel reservation and refund owner.
+     * Cancel reservation and refund owner via Stripe.
      */
     public function cancelAndRefund(CareRequest $careRequest)
     {
@@ -148,6 +143,28 @@ class PaymentController extends Controller
 
         if (! $payment) {
             return back()->with('error', 'No se encontró ningún pago activo en depósito para esta petición.');
+        }
+
+        try {
+            $stripe = app(StripeClient::class);
+            $transactionId = $payment->transaction_id;
+            $paymentIntentId = null;
+
+            // If transaction_id is a checkout session, retrieve the session to get the payment intent
+            if (str_starts_with($transactionId, 'cs_')) {
+                $session = $stripe->checkout->sessions->retrieve($transactionId);
+                $paymentIntentId = $session->payment_intent;
+            } elseif (str_starts_with($transactionId, 'pi_')) {
+                $paymentIntentId = $transactionId;
+            }
+
+            if ($paymentIntentId) {
+                $stripe->refunds->create([
+                    'payment_intent' => $paymentIntentId,
+                ]);
+            }
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al procesar el reembolso en Stripe: ' . $e->getMessage());
         }
 
         DB::transaction(function () use ($careRequest, $payment) {
@@ -197,5 +214,134 @@ class PaymentController extends Controller
             ->get();
 
         return view('payments.wallet', compact('availableBalance', 'escrowBalance', 'totalSpent', 'transactions'));
+    }
+
+    /**
+     * Handle the Stripe Checkout success redirect.
+     */
+    public function paymentSuccess(CareRequest $careRequest, Request $request)
+    {
+        $sessionId = $request->query('session_id');
+
+        if (!$sessionId) {
+            return redirect()->route('payments.checkout', $careRequest)
+                ->with('error', 'Sesión de pago no válida.');
+        }
+
+        try {
+            $stripe = app(StripeClient::class);
+            $session = $stripe->checkout->sessions->retrieve($sessionId, [
+                'expand' => ['payment_intent.payment_method']
+            ]);
+
+            if ($session->payment_status === 'paid') {
+                $this->registerStripePayment($session);
+
+                return redirect()->route('care-requests.show', $careRequest)
+                    ->with('success', '¡Pago procesado con éxito! La reserva se ha confirmado y el dinero está en depósito de garantía.');
+            }
+        } catch (\Exception $e) {
+            return redirect()->route('payments.checkout', $careRequest)
+                ->with('error', 'Error al verificar el pago: ' . $e->getMessage());
+        }
+
+        return redirect()->route('payments.checkout', $careRequest)
+            ->with('error', 'El pago no ha sido completado.');
+    }
+
+    /**
+     * Handle Stripe Webhook calls.
+     */
+    public function handleWebhook(Request $request)
+    {
+        $payload = $request->getContent();
+        $sigHeader = $request->header('Stripe-Signature');
+        $endpointSecret = config('services.stripe.webhook_secret');
+
+        try {
+            $event = Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
+        } catch (\UnexpectedValueException $e) {
+            return response()->json(['error' => 'Invalid payload'], 400);
+        } catch (\Stripe\Exception\SignatureVerificationException $e) {
+            return response()->json(['error' => 'Invalid signature'], 400);
+        }
+
+        if ($event->type === 'checkout.session.completed') {
+            $session = $event->data->object;
+            
+            // Retrieve session with payment_intent and payment_method expanded
+            try {
+                $stripe = app(StripeClient::class);
+                $expandedSession = $stripe->checkout->sessions->retrieve($session->id, [
+                    'expand' => ['payment_intent.payment_method']
+                ]);
+                $this->registerStripePayment($expandedSession);
+            } catch (\Exception $e) {
+                // Log/handle error
+            }
+        }
+
+        return response()->json(['status' => 'success']);
+    }
+
+    /**
+     * Helper to register the payment in database.
+     */
+    private function registerStripePayment($session)
+    {
+        $metadata = $session->metadata;
+        $careRequestId = $metadata->care_request_id ?? null;
+        $caretakerId = $metadata->caretaker_id ?? null;
+        $userId = $metadata->user_id ?? null;
+
+        if (!$careRequestId || !$caretakerId || !$userId) {
+            return;
+        }
+
+        // Check for duplicate payment records
+        $existingPayment = Payment::where('transaction_id', $session->id)->first();
+        if ($existingPayment) {
+            return;
+        }
+
+        $careRequest = CareRequest::findOrFail($careRequestId);
+
+        // Ensure we only process if it is pending
+        if ($careRequest->status !== 'pending') {
+            return;
+        }
+
+        $lastFour = '0000';
+        try {
+            $paymentIntent = $session->payment_intent;
+            if ($paymentIntent && $paymentIntent->payment_method && $paymentIntent->payment_method->type === 'card') {
+                $lastFour = $paymentIntent->payment_method->card->last4;
+            }
+        } catch (\Exception $e) {
+            // Fallback
+        }
+
+        DB::transaction(function () use ($careRequest, $caretakerId, $userId, $session, $lastFour) {
+            $careRequest->update([
+                'status' => 'accepted',
+                'accepted_by' => $caretakerId,
+            ]);
+
+            $amount = $careRequest->price;
+            $fee = round($amount * 0.10, 2);
+            $netAmount = $amount - $fee;
+
+            Payment::create([
+                'care_request_id' => $careRequest->id,
+                'user_id' => $userId,
+                'receiver_id' => $caretakerId,
+                'amount' => $amount,
+                'fee' => $fee,
+                'net_amount' => $netAmount,
+                'status' => 'escrow',
+                'card_last_four' => $lastFour,
+                'transaction_id' => $session->id,
+            ]);
+        });
     }
 }
