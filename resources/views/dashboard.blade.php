@@ -5,15 +5,21 @@
                 {{ __('Panel de Control') }}
             </h2>
             
-            <!-- Python ETL Trigger Button -->
+            <!-- Python ETL Trigger Button & Admin user manager link -->
             @if (Auth::user()->isAdmin())
-                <form action="{{ route('dashboard.update-analytics') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-sm rounded-2xl transition-all duration-200 hover:scale-[1.02] shadow-md shadow-brand-100/50">
-                        <span class="mr-2">🐍</span>
-                        {{ __('Actualizar Estadísticas (Python)') }}
-                    </button>
-                </form>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="{{ route('admin.users.index') }}" class="inline-flex items-center px-4 py-2.5 bg-brand-900 hover:bg-brand-950 text-white font-bold text-sm rounded-2xl transition-all duration-200 hover:scale-[1.02] shadow-md shadow-brand-100/55">
+                        <span class="mr-2">👥</span>
+                        {{ __('Administrar Usuarios') }}
+                    </a>
+                    <form action="{{ route('dashboard.update-analytics') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-sm rounded-2xl transition-all duration-200 hover:scale-[1.02] shadow-md shadow-brand-100/50">
+                            <span class="mr-2">🐍</span>
+                            {{ __('Actualizar Estadísticas (Python)') }}
+                        </button>
+                    </form>
+                </div>
             @endif
         </div>
     </x-slot>

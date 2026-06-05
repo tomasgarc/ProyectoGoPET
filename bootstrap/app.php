@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'stripe/webhook',
         ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\BlockBannedUsers::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

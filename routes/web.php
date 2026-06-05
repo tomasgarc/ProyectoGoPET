@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     // Chats & Messaging
     Route::get('/chats', [ChatController::class, 'index'])->name('chats.index');
     Route::post('/care-requests/{care_request}/chat', [ChatController::class, 'start'])->name('chats.start');
+    Route::post('/chats/user/{user}', [ChatController::class, 'startDirectChat'])->name('chats.start-direct');
     Route::post('/chats/{chat}/messages', [ChatController::class, 'storeMessage'])->name('chats.messages.store');
 
     // Payments & Escrow System
@@ -66,6 +67,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Admin User Management
+    Route::middleware('admin')->group(function () {
+        Route::get('/admin/users', [DashboardController::class, 'usersIndex'])->name('admin.users.index');
+        Route::get('/admin/users/{user}', [DashboardController::class, 'usersShow'])->name('admin.users.show');
+        Route::post('/admin/users/{user}/toggle-ban', [DashboardController::class, 'usersToggleBan'])->name('admin.users.toggle-ban');
+    });
 });
 
 // Stripe Webhook (No CSRF, outside auth middleware)

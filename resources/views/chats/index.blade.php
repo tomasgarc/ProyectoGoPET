@@ -44,11 +44,15 @@
                                         
                                         <!-- Perros de la petición como contexto -->
                                         <div class="text-[10px] text-brand-600 font-black uppercase tracking-wider truncate mb-1">
-                                            🐾 
-                                            @foreach($chat->careRequest->dogs as $dog)
-                                                {{ $dog->name }}{{ !$loop->last ? ', ' : '' }}
-                                            @endforeach
-                                            • {{ number_format($chat->careRequest->price, 0) }}€
+                                            @if($chat->careRequest)
+                                                🐾 
+                                                @foreach($chat->careRequest->dogs as $dog)
+                                                    {{ $dog->name }}{{ !$loop->last ? ', ' : '' }}
+                                                @endforeach
+                                                • {{ number_format($chat->careRequest->price, 0) }}€
+                                            @else
+                                                💬 {{ __('Chat Directo / Soporte') }}
+                                            @endif
                                         </div>
 
                                         <!-- Último Mensaje o unread badge -->
@@ -109,30 +113,37 @@
 
                             <!-- Contexto / Detalles de la Petición y Botón de Aceptar -->
                             <div class="flex flex-wrap items-center gap-3">
-                                <div class="bg-accent-50/50 border border-brand-100/50 px-3.5 py-1.5 rounded-2xl text-xs flex items-center space-x-2">
-                                    <span class="font-bold text-accent-600">🐾 Petición:</span>
-                                    <span class="text-brand-700 font-black">
-                                        @foreach($careRequest->dogs as $dog)
-                                            {{ $dog->name }}{{ !$loop->last ? ', ' : '' }}
-                                        @endforeach
-                                    </span>
-                                    <span class="text-brand-200">|</span>
-                                    <span class="text-brand-600 font-black">{{ number_format($careRequest->price, 0) }}€</span>
-                                </div>
+                                @if($careRequest)
+                                    <div class="bg-accent-50/50 border border-brand-100/50 px-3.5 py-1.5 rounded-2xl text-xs flex items-center space-x-2">
+                                        <span class="font-bold text-accent-600">🐾 Petición:</span>
+                                        <span class="text-brand-700 font-black">
+                                            @foreach($careRequest->dogs as $dog)
+                                                {{ $dog->name }}{{ !$loop->last ? ', ' : '' }}
+                                            @endforeach
+                                        </span>
+                                        <span class="text-brand-200">|</span>
+                                        <span class="text-brand-600 font-black">{{ number_format($careRequest->price, 0) }}€</span>
+                                    </div>
 
-                                <a href="{{ route('care-requests.show', $careRequest) }}" class="inline-flex items-center px-5 py-2 bg-white hover:bg-brand-50/50 text-brand-750 border border-brand-200 rounded-xl text-xs font-bold transition shadow-sm">
-                                    {{ __('Ver Petición') }}
-                                </a>
+                                    <a href="{{ route('care-requests.show', $careRequest) }}" class="inline-flex items-center px-5 py-2 bg-white hover:bg-brand-50/50 text-brand-750 border border-brand-200 rounded-xl text-xs font-bold transition shadow-sm">
+                                        {{ __('Ver Petición') }}
+                                    </a>
 
-                                <!-- ACCIÓN PREMIUM: Elegir como Cuidador desde el Chat -->
-                                @if($careRequest->user_id === auth()->id() && $careRequest->status === 'pending' && !$careRequest->isFinalized())
-                                    <form action="{{ route('care-requests.accept', $careRequest) }}" method="POST" class="inline">
-                                        @csrf
-                                        <input type="hidden" name="accepted_by" value="{{ $partner->id }}">
-                                        <button type="submit" class="inline-flex items-center px-5 py-2 bg-brand-200 hover:bg-brand-500 text-brand-900 hover:text-white rounded-xl text-xs font-bold transition shadow-sm uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98]" onclick="return confirm('¿Confirmas que deseas seleccionar a {{ $partner->name }} como cuidador para tus perros?')">
-                                            🤝 {{ __('Elegir Cuidador') }}
-                                        </button>
-                                    </form>
+                                    <!-- ACCIÓN PREMIUM: Elegir como Cuidador desde el Chat -->
+                                    @if($careRequest->user_id === auth()->id() && $careRequest->status === 'pending' && !$careRequest->isFinalized())
+                                        <form action="{{ route('care-requests.accept', $careRequest) }}" method="POST" class="inline">
+                                            @csrf
+                                            <input type="hidden" name="accepted_by" value="{{ $partner->id }}">
+                                            <button type="submit" class="inline-flex items-center px-5 py-2 bg-brand-200 hover:bg-brand-500 text-brand-900 hover:text-white rounded-xl text-xs font-bold transition shadow-sm uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98]" onclick="return confirm('¿Confirmas que deseas seleccionar a {{ $partner->name }} como cuidador para tus perros?')">
+                                                🤝 {{ __('Elegir Cuidador') }}
+                                            </button>
+                                        </form>
+                                    @endif
+                                @else
+                                    <div class="bg-brand-50/50 border border-brand-100/50 px-3.5 py-1.5 rounded-2xl text-xs flex items-center space-x-2">
+                                        <span class="font-bold text-brand-600">💬 Modo:</span>
+                                        <span class="text-brand-700 font-black">Chat Directo</span>
+                                    </div>
                                 @endif
                             </div>
                         </div>
@@ -173,7 +184,7 @@
 
                         <!-- Formulario de Mensaje -->
                         <div class="p-4 bg-white border-t border-brand-50 flex-shrink-0">
-                            @if($careRequest->isFinalized())
+                            @if($careRequest && $careRequest->isFinalized())
                                 <div class="bg-accent-50 text-accent-600 text-center py-2 px-4 rounded-xl text-xs font-bold italic">
                                     🔒 {{ __('Esta conversación está cerrada porque la petición ha finalizado.') }}
                                 </div>

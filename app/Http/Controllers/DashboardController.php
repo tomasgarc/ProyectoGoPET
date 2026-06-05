@@ -207,4 +207,63 @@ class DashboardController extends Controller
         File::ensureDirectoryExists(dirname($analyticsPath));
         File::put($analyticsPath, json_encode($fallbackData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
+
+    /**
+     * List all users for administration.
+     */
+    public function usersIndex(Request $request)
+    {
+        $search = $request->query('search');
+
+        $users = User::where('id', '!=', auth()->id())
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10);
+
+        return view('admin.users.index', compact('users', 'search'));
+    }
+
+    /**
+     * Show a user's details and their dogs.
+     */
+    public function usersShow(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'No puedes administrar tu propia cuenta desde aquí.');
+        }
+
+        $user->load('dogs');
+
+        return view('admin.users.show', compact('user'));
+    }
+
+    /**
+     * Ban or unban a user.
+     */
+    public function usersToggleBan(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'No puedes banearte a ti mismo.');
+        }
+
+        if ($user->isAdmin()) {
+            return back()->with('error', 'No puedes banear a otro administrador de la plataforma.');
+        }
+
+        if ($user->isBanned()) {
+            $user->update(['banned_at' => null]);
+            $message = "El usuario {$user->name} ha sido desbaneado con éxito.";
+        } else {
+            $user->update(['banned_at' => now()]);
+            $message = "El usuario {$user->name} ha sido baneado con éxito y su sesión ha sido invalidada.";
+        }
+
+        return back()->with('success', $message);
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CareRequest;
 use App\Models\Chat;
 use App\Models\Message;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ChatController extends Controller
@@ -93,7 +94,7 @@ class ChatController extends Controller
         ]);
 
         // If care request has finished, prevent further messages
-        if ($chat->careRequest->isFinalized()) {
+        if ($chat->careRequest && $chat->careRequest->isFinalized()) {
             return back()->with('error', 'No se pueden enviar mensajes a peticiones que han finalizado.');
         }
 
@@ -104,5 +105,39 @@ class ChatController extends Controller
         ]);
 
         return redirect()->route('chats.index', ['chat' => $chat->id])->with('message_sent', true);
+    }
+
+    /**
+     * Start a direct chat with a user (e.g. from admin panel).
+     */
+    public function startDirectChat(User $user)
+    {
+        $userId = auth()->id();
+
+        // You cannot chat with yourself
+        if ($user->id === $userId) {
+            return back()->with('error', 'No puedes abrir un chat contigo mismo.');
+        }
+
+        // Check if a direct chat (where care_request_id is null) already exists between these two users
+        $chat = Chat::whereNull('care_request_id')
+            ->where(function ($query) use ($userId, $user) {
+                $query->where(function ($q) use ($userId, $user) {
+                    $q->where('user_id', $userId)->where('creator_id', $user->id);
+                })->orWhere(function ($q) use ($userId, $user) {
+                    $q->where('user_id', $user->id)->where('creator_id', $userId);
+                });
+            })
+            ->first();
+
+        if (!$chat) {
+            $chat = Chat::create([
+                'care_request_id' => null,
+                'user_id' => $user->id, // recipient
+                'creator_id' => $userId, // creator
+            ]);
+        }
+
+        return redirect()->route('chats.index', ['chat' => $chat->id]);
     }
 }
