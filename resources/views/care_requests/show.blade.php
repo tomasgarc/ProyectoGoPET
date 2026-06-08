@@ -115,6 +115,13 @@
                                         al <span class="font-black text-brand-700">{{ \Carbon\Carbon::parse($careRequest->end_date)->format('d/m/Y') }}</span>
                                     </p>
                                 </div>
+
+                                <div>
+                                    <p class="text-[9px] uppercase text-accent-500 font-black tracking-widest">{{ __('Ubicación') }}</p>
+                                    <p class="text-accent-950 text-sm font-semibold mt-0.5">
+                                        📍 <span class="font-black text-brand-700">{{ $careRequest->location }}</span>
+                                    </p>
+                                </div>
                                 
                                 @if($careRequest->description)
                                     <div>

@@ -14,6 +14,32 @@
                 </div>
             @endif
 
+            <!-- Filtro de Ubicación -->
+            <div class="bg-white border border-brand-100/50 rounded-3xl p-5 mb-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h3 class="text-sm font-bold text-brand-900">Filtrar por Ubicación</h3>
+                    <p class="text-xs text-accent-500 font-semibold mt-0.5">Encuentra peticiones de cuidado cerca de ti</p>
+                </div>
+                <form action="{{ route('care-requests.explore') }}" method="GET" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                    <select name="location" class="border-brand-200/80 focus:border-brand-500 focus:ring-brand-500/20 text-xs font-semibold rounded-2xl py-2 px-4 bg-white transition w-full sm:w-64">
+                        <option value="">{{ __('Todas las ubicaciones') }}</option>
+                        @foreach(config('locations.cadiz') as $loc)
+                            <option value="{{ $loc }}" {{ request('location') === $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                        @endforeach
+                    </select>
+                    <div class="flex items-center gap-2">
+                        <button type="submit" class="flex-grow sm:flex-grow-0 py-2 px-5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold uppercase tracking-widest rounded-2xl transition shadow-sm hover:scale-[1.01] active:scale-[0.99]">
+                            {{ __('Filtrar') }}
+                        </button>
+                        @if(request('location'))
+                            <a href="{{ route('care-requests.explore') }}" class="py-2 px-4 bg-accent-100 hover:bg-accent-200 text-accent-700 text-xs font-bold uppercase tracking-widest rounded-2xl transition text-center">
+                                {{ __('Limpiar') }}
+                            </a>
+                        @endif
+                    </div>
+                </form>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse($careRequests as $request)
                     <div class="bg-white overflow-hidden shadow-sm border border-brand-100/50 rounded-3xl hover:shadow-xl hover:shadow-brand-100/10 hover:border-brand-200/50 transition-all duration-300 flex flex-col justify-between group">
@@ -59,6 +85,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                     <span>{{ \Carbon\Carbon::parse($request->start_date)->format('d M') }} - {{ \Carbon\Carbon::parse($request->end_date)->format('d M') }}</span>
+                                </div>
+                                
+                                <div class="flex items-center text-sm text-accent-700 font-semibold">
+                                    <svg class="w-4 h-4 mr-2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span>{{ $request->location }}</span>
                                 </div>
                                 
                                 @if($request->description)

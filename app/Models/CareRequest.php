@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CareRequest extends Model
 {
-    protected $fillable = ['user_id', 'start_date', 'end_date', 'price', 'description', 'status', 'accepted_by'];
+    protected $fillable = ['user_id', 'start_date', 'end_date', 'price', 'description', 'status', 'accepted_by', 'location'];
 
     public function user()
     {

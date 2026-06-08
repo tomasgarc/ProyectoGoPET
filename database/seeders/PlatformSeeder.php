@@ -470,5 +470,9 @@ class PlatformSeeder extends Seeder
             'rating' => 3,
             'comment' => 'El cuidado fue correcto, aunque la comunicación de incidencias fue algo lenta.',
         ]);
+
+        // Update all seeded users and care requests to be in El Puerto de Santa María
+        User::query()->update(['location' => 'El Puerto de Santa María']);
+        CareRequest::query()->update(['location' => 'El Puerto de Santa María']);
     }
 }

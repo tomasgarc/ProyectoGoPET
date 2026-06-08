@@ -51,6 +51,18 @@
                                 <x-input-error :messages="$errors->get('price')" class="mt-2" />
                             </div>
 
+                            <!-- Ubicación -->
+                            <div>
+                                <x-input-label for="location" :value="__('Ubicación')" class="text-xs font-black uppercase text-accent-600 tracking-wider mb-1.5" />
+                                <select id="location" name="location" class="block w-full border-brand-200/80 focus:border-brand-500 focus:ring-brand-500/20 text-xs font-semibold rounded-2xl py-2.5 px-3 bg-white placeholder-accent-400 transition" required>
+                                    <option value="" disabled>{{ __('Selecciona una población') }}</option>
+                                    @foreach(config('locations.cadiz') as $loc)
+                                        <option value="{{ $loc }}" {{ old('location', auth()->user()->location ?? 'El Puerto de Santa María') === $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                    @endforeach
+                                </select>
+                                <x-input-error :messages="$errors->get('location')" class="mt-2" />
+                            </div>
+
                             <!-- Notas/Información Adicional -->
                             <div class="md:col-span-2">
                                 <x-input-label for="description" :value="__('Información adicional / Notas')" class="text-xs font-black uppercase text-accent-600 tracking-wider mb-1.5" />

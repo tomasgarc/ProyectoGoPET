@@ -38,12 +38,17 @@ class CareRequestController extends Controller
     /**
      * Display a listing of care requests from other users.
      */
-    public function explore()
+    public function explore(Request $request)
     {
-        $careRequests = CareRequest::where('user_id', '!=', auth()->id())
+        $query = CareRequest::where('user_id', '!=', auth()->id())
             ->where('status', 'pending')
-            ->where('end_date', '>=', now()->toDateString())
-            ->with(['dogs', 'user'])
+            ->where('end_date', '>=', now()->toDateString());
+
+        if ($request->filled('location')) {
+            $query->where('location', $request->location);
+        }
+
+        $careRequests = $query->with(['dogs', 'user'])
             ->latest()
             ->get();
 
@@ -72,6 +77,7 @@ class CareRequestController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
+            'location' => 'required|string|in:' . implode(',', config('locations.cadiz')),
         ]);
 
         $careRequest = auth()->user()->careRequests()->create([
@@ -79,6 +85,7 @@ class CareRequestController extends Controller
             'end_date' => $request->end_date,
             'price' => $request->price,
             'description' => $request->description,
+            'location' => $request->location,
             'status' => 'pending',
         ]);
 
