@@ -143,6 +143,15 @@ def extract_and_transform(conn):
             dog_sizes[norm_sz] = dog_sizes.get(norm_sz, 0) + count
     stats['dog_sizes'] = dog_sizes
 
+    # 5b. Dog Sex Distribution (Case-insensitive normalization)
+    cursor.execute("SELECT sex, COUNT(*) FROM dogs GROUP BY sex")
+    raw_sexes = cursor.fetchall()
+    dog_sexes = {}
+    for sx, count in raw_sexes:
+        norm_sx = sx.strip().lower() if sx else 'macho'
+        dog_sexes[norm_sx] = dog_sexes.get(norm_sx, 0) + count
+    stats['dog_sexes'] = dog_sexes
+
     # 6. Request Status Distribution
     cursor.execute("SELECT status, COUNT(*) FROM care_requests GROUP BY status")
     stats['request_statuses'] = dict(cursor.fetchall())
@@ -197,6 +206,30 @@ def generate_charts(stats):
         plt.title('Distribución de Tamaños de Perros', fontsize=14, fontweight='black', color='#1e1b4b', pad=20)
         plt.tight_layout()
         plt.savefig(os.path.join(CHARTS_DIR, 'dog_sizes.png'), dpi=150, transparent=True)
+        plt.close()
+
+    # 1b. Chart: Dog Sex Distribution (Donut Chart)
+    sexes_data = stats.get('dog_sexes', {})
+    if sexes_data:
+        plt.figure(figsize=(6, 6))
+        label_mapping = {'macho': 'Machos', 'hembra': 'Hembras'}
+        labels = [label_mapping.get(k, k.capitalize()) for k in sexes_data.keys()]
+        values = list(sexes_data.values())
+        gender_colors = ['#818cf8', '#fb7185'] # Machos (Indigo), Hembras (Rose)
+        
+        plt.pie(values, labels=labels, autopct='%1.1f%%', startangle=90, 
+                colors=[gender_colors[0] if k == 'macho' else gender_colors[1] for k in sexes_data.keys()],
+                textprops={'fontsize': 12, 'weight': 'bold', 'color': '#1e1b4b'},
+                wedgeprops={'edgecolor': 'white', 'linewidth': 3})
+        
+        # Draw white circle in the middle to make it a donut chart
+        centre_circle = plt.Circle((0,0), 0.60, fc='white')
+        ax = plt.gca()
+        ax.add_artist(centre_circle)
+        
+        plt.title('Distribución por Sexo de Mascotas', fontsize=14, fontweight='black', color='#1e1b4b', pad=20)
+        plt.tight_layout()
+        plt.savefig(os.path.join(CHARTS_DIR, 'dog_genders.png'), dpi=150, transparent=True)
         plt.close()
         
     # 2. Chart: Care Request Status Count (Bar Chart)

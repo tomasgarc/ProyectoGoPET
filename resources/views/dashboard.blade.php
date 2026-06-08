@@ -132,11 +132,16 @@
                     @if (isset($stats['charts_generated']) && $stats['charts_generated'])
                         <div class="space-y-6">
                             <h4 class="font-black text-lg text-brand-900 border-b border-brand-50/50 pb-2">Visualización Gráfica</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <!-- Dog Sizes Chart -->
                                 <div class="bg-accent-50/20 border border-brand-50/50 p-4 rounded-2xl flex flex-col items-center shadow-inner hover:scale-[1.01] transition-transform duration-200">
                                     <img src="{{ asset('images/analytics/dog_sizes.png') }}?v={{ time() }}" alt="Tamaños de Perro" class="max-w-full h-auto rounded-xl">
                                     <span class="text-xs text-accent-600 font-bold mt-2">Distribución de tamaños</span>
+                                </div>
+                                <!-- Dog Genders Chart -->
+                                <div class="bg-accent-50/20 border border-brand-50/50 p-4 rounded-2xl flex flex-col items-center shadow-inner hover:scale-[1.01] transition-transform duration-200">
+                                    <img src="{{ asset('images/analytics/dog_genders.png') }}?v={{ time() }}" alt="Sexo de Perros" class="max-w-full h-auto rounded-xl">
+                                    <span class="text-xs text-accent-600 font-bold mt-2">Distribución por sexo</span>
                                 </div>
                                 <!-- Request Status Chart -->
                                 <div class="bg-accent-50/20 border border-brand-50/50 p-4 rounded-2xl flex flex-col items-center shadow-inner hover:scale-[1.01] transition-transform duration-200">
@@ -160,13 +165,25 @@
                             <p class="text-xs text-accent-600 leading-relaxed max-w-2xl">
                                 Los gráficos visuales no se han generado en el servidor (puede deberse a que no están instaladas las librerías `matplotlib` y `pandas` de Python). Sin embargo, a continuación se desglosan los datos de interés calculados por el pipeline:
                             </p>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
                                 <div class="bg-white p-4 border border-brand-50/50 rounded-xl space-y-2">
                                     <span class="text-xs text-accent-600 font-bold">Tamaño de Perros:</span>
                                     <ul class="text-xs text-brand-900 font-medium space-y-1">
                                         @if(isset($stats['dog_sizes']) && is_array($stats['dog_sizes']))
                                             @foreach($stats['dog_sizes'] as $size => $count)
                                                 <li>• {{ ucfirst($size) }}: <strong>{{ $count }}</strong></li>
+                                            @endforeach
+                                        @else
+                                            <li>No hay datos</li>
+                                        @endif
+                                    </ul>
+                                </div>
+                                <div class="bg-white p-4 border border-brand-50/50 rounded-xl space-y-2">
+                                    <span class="text-xs text-accent-600 font-bold">Sexo de Perros:</span>
+                                    <ul class="text-xs text-brand-900 font-medium space-y-1">
+                                        @if(isset($stats['dog_sexes']) && is_array($stats['dog_sexes']))
+                                            @foreach($stats['dog_sexes'] as $sex => $count)
+                                                <li>• {{ ucfirst($sex) }}: <strong>{{ $count }}</strong></li>
                                             @endforeach
                                         @else
                                             <li>No hay datos</li>
