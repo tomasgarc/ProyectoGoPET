@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Dog extends Model
 {
-    protected $fillable = ['name', 'breed', 'age', 'size', 'photo', 'user_id'];
+    protected $fillable = ['name', 'breed', 'age', 'size', 'photo', 'sex', 'user_id'];
 
     /**
      * Get the owner of the dog.

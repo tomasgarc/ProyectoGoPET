@@ -95,7 +95,7 @@
                                         @endif
                                         <div>
                                             <p class="font-black text-brand-900 text-sm uppercase">{{ $dog->name }}</p>
-                                            <p class="text-xs text-accent-600 font-semibold mt-0.5">{{ $dog->breed }} • {{ $dog->age }} años</p>
+                                            <p class="text-xs text-accent-600 font-semibold mt-0.5">{{ $dog->breed }} • {{ $dog->age }} {{ $dog->age == 1 ? 'año' : 'años' }} • {{ ucfirst($dog->sex ?? 'macho') }}</p>
                                         </div>
                                     </div>
                                 @endforeach

@@ -54,6 +54,7 @@
                                     </div>
                                     <div class="flex justify-between items-center bg-white px-4 py-2 border border-brand-50 rounded-2xl text-xs font-bold text-brand-800">
                                         <span class="bg-brand-50 text-brand-700 px-2.5 py-0.5 rounded-full uppercase tracking-wider text-[10px]">{{ $dog->size ?? 'Mediano' }}</span>
+                                        <span class="text-brand-600 px-2 py-0.5 bg-brand-50/50 rounded-full uppercase tracking-wider text-[10px]">{{ $dog->sex ?? 'Macho' }}</span>
                                         <span class="text-accent-600">{{ $dog->age }} {{ $dog->age == 1 ? 'año' : 'años' }}</span>
                                     </div>
                                     <div class="flex justify-center gap-3 pt-3 border-t border-brand-50/50">

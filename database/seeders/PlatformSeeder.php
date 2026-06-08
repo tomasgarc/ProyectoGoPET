@@ -108,11 +108,51 @@ class PlatformSeeder extends Seeder
         // 2. Create Dogs
         $dogs = [];
 
+        // Ensure dogs directory exists in public storage
+        $dogsDir = storage_path('app/public/dogs');
+        if (!file_exists($dogsDir)) {
+            mkdir($dogsDir, 0755, true);
+        }
+
+        // Mock photos from Unsplash
+        $photoData = [
+            'max' => 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400',
+            'luna' => 'https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=400',
+            'rocky' => 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400',
+            'toby' => 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400',
+            'bella' => 'https://images.unsplash.com/photo-1531804055935-76f44d7c3621?w=400',
+            'coco' => 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400',
+            'simba' => 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400',
+            'nala' => 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400',
+        ];
+
+        foreach ($photoData as $key => $url) {
+            $path = "dogs/{$key}.jpg";
+            $fullPath = storage_path("app/public/{$path}");
+            if (!file_exists($fullPath)) {
+                try {
+                    $ctx = stream_context_create([
+                        'http' => [
+                            'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
+                        ]
+                    ]);
+                    $content = file_get_contents($url, false, $ctx);
+                    if ($content) {
+                        file_put_contents($fullPath, $content);
+                    }
+                } catch (\Exception $e) {
+                    // Silently ignore download errors
+                }
+            }
+        }
+
         $dogs['max'] = Dog::create([
             'name' => 'Max',
             'breed' => 'Golden Retriever',
             'age' => 3,
             'size' => 'grande',
+            'photo' => file_exists(storage_path('app/public/dogs/max.jpg')) ? 'dogs/max.jpg' : null,
+            'sex' => 'macho',
             'user_id' => $users['juan']->id,
         ]);
 
@@ -121,6 +161,8 @@ class PlatformSeeder extends Seeder
             'breed' => 'Chihuahua',
             'age' => 1,
             'size' => 'pequeño',
+            'photo' => file_exists(storage_path('app/public/dogs/luna.jpg')) ? 'dogs/luna.jpg' : null,
+            'sex' => 'hembra',
             'user_id' => $users['maria']->id,
         ]);
 
@@ -129,6 +171,8 @@ class PlatformSeeder extends Seeder
             'breed' => 'Bulldog Francés',
             'age' => 4,
             'size' => 'mediano',
+            'photo' => file_exists(storage_path('app/public/dogs/rocky.jpg')) ? 'dogs/rocky.jpg' : null,
+            'sex' => 'macho',
             'user_id' => $users['maria']->id,
         ]);
 
@@ -137,6 +181,8 @@ class PlatformSeeder extends Seeder
             'breed' => 'Cocker Spaniel',
             'age' => 2,
             'size' => 'mediano',
+            'photo' => file_exists(storage_path('app/public/dogs/toby.jpg')) ? 'dogs/toby.jpg' : null,
+            'sex' => 'macho',
             'user_id' => $users['carlos']->id,
         ]);
 
@@ -145,6 +191,8 @@ class PlatformSeeder extends Seeder
             'breed' => 'Husky Siberiano',
             'age' => 5,
             'size' => 'grande',
+            'photo' => file_exists(storage_path('app/public/dogs/bella.jpg')) ? 'dogs/bella.jpg' : null,
+            'sex' => 'hembra',
             'user_id' => $users['ana']->id,
         ]);
 
@@ -153,6 +201,8 @@ class PlatformSeeder extends Seeder
             'breed' => 'Yorkshire Terrier',
             'age' => 6,
             'size' => 'pequeño',
+            'photo' => file_exists(storage_path('app/public/dogs/coco.jpg')) ? 'dogs/coco.jpg' : null,
+            'sex' => 'macho',
             'user_id' => $users['ana']->id,
         ]);
 
@@ -161,6 +211,8 @@ class PlatformSeeder extends Seeder
             'breed' => 'Pastor Alemán',
             'age' => 2,
             'size' => 'grande',
+            'photo' => file_exists(storage_path('app/public/dogs/simba.jpg')) ? 'dogs/simba.jpg' : null,
+            'sex' => 'macho',
             'user_id' => $users['elena']->id,
         ]);
 
@@ -169,6 +221,8 @@ class PlatformSeeder extends Seeder
             'breed' => 'Beagle',
             'age' => 3,
             'size' => 'mediano',
+            'photo' => file_exists(storage_path('app/public/dogs/nala.jpg')) ? 'dogs/nala.jpg' : null,
+            'sex' => 'hembra',
             'user_id' => $users['elena']->id,
         ]);
 

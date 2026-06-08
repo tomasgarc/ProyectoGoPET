@@ -144,6 +144,9 @@
                                             <span class="inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-150 text-[10px] font-black text-indigo-700 tracking-wider">
                                                 {{ $dog->age }} {{ $dog->age === 1 ? 'año' : 'años' }}
                                             </span>
+                                            <span class="inline-flex px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-150 text-[10px] font-black text-rose-700 tracking-wider uppercase">
+                                                {{ $dog->sex ?? 'macho' }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

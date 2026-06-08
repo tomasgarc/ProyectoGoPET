@@ -36,6 +36,7 @@ class DogController extends Controller
             'breed' => 'nullable|string|max:255',
             'age' => 'nullable|integer',
             'size' => 'nullable|string|max:255',
+            'sex' => 'nullable|string|in:macho,hembra',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -77,6 +78,7 @@ class DogController extends Controller
             'breed' => 'nullable|string|max:255',
             'age' => 'nullable|integer',
             'size' => 'nullable|string|max:255',
+            'sex' => 'nullable|string|in:macho,hembra',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 

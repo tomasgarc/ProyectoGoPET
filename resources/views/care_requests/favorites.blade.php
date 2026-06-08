@@ -73,7 +73,7 @@
                                                 @else
                                                     <span class="text-[10px] ml-2 mr-1">🐾</span>
                                                 @endif
-                                                <span class="text-[10px] font-bold text-brand-700 uppercase tracking-wide">{{ $dog->name }}</span>
+                                                <span class="text-[10px] font-bold text-brand-700 uppercase tracking-wide">{{ $dog->name }} ({{ $dog->sex === 'hembra' ? '♀' : '♂' }})</span>
                                             </div>
                                         @endforeach
                                     </div>

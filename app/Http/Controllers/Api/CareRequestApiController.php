@@ -21,7 +21,7 @@ class CareRequestApiController extends Controller
     {
         $requests = CareRequest::where('status', 'pending')
             ->where('end_date', '>=', now()->toDateString())
-            ->with(['dogs:id,name,breed,size,age', 'user:id,name'])
+            ->with(['dogs:id,name,breed,size,age,sex', 'user:id,name'])
             ->latest()
             ->get()
             ->map(function ($req) {
@@ -42,6 +42,7 @@ class CareRequestApiController extends Controller
                             'breed' => $dog->breed ?? 'Mestizo',
                             'size' => $dog->size,
                             'age' => $dog->age,
+                            'sex' => $dog->sex,
                         ];
                     }),
                     'created_at' => $req->created_at->toIso8601String(),
@@ -70,6 +71,7 @@ class CareRequestApiController extends Controller
                     'breed' => $dog->breed ?? 'Mestizo',
                     'size' => $dog->size,
                     'age' => $dog->age,
+                    'sex' => $dog->sex,
                     'photo_url' => $dog->photo ? asset('storage/'.$dog->photo) : null,
                     'owner' => [
                         'id' => $dog->user->id,

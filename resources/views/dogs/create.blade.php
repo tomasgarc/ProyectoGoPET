@@ -46,6 +46,16 @@
                                 <x-input-error :messages="$errors->get('size')" class="mt-2" />
                             </div>
 
+                            <!-- Sexo -->
+                            <div>
+                                <x-input-label for="sex" :value="__('Sexo')" class="text-xs font-black uppercase text-accent-600 tracking-wider mb-1.5" />
+                                <select id="sex" name="sex" class="block w-full border-brand-200/80 focus:border-brand-500 focus:ring-brand-500/20 rounded-2xl shadow-sm text-accent-950 bg-white placeholder-accent-400 transition-all duration-150 py-2.5 px-3">
+                                    <option value="macho" selected>{{ __('Macho') }}</option>
+                                    <option value="hembra">{{ __('Hembra') }}</option>
+                                </select>
+                                <x-input-error :messages="$errors->get('sex')" class="mt-2" />
+                            </div>
+
                             <!-- Foto -->
                             <div class="md:col-span-2">
                                 <x-input-label for="photo" :value="__('Foto de la mascota')" class="text-xs font-black uppercase text-accent-600 tracking-wider mb-1.5" />
