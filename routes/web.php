@@ -37,7 +37,7 @@ Route::post('/dashboard/update-analytics', [DashboardController::class, 'updateA
     ->middleware(['auth', 'verified'])
     ->name('dashboard.update-analytics');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('dogs', DogController::class);
     Route::get('/explore-requests', [CareRequestController::class, 'explore'])->name('care-requests.explore');
     Route::get('/care-requests/history', [CareRequestController::class, 'history'])->name('care-requests.history');
