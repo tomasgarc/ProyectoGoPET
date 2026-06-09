@@ -23,7 +23,7 @@
                             <!-- Raza -->
                             <div>
                                 <x-input-label for="breed" :value="__('Raza')" class="text-xs font-black uppercase text-accent-600 tracking-wider mb-1.5" />
-                                <x-text-input id="breed" class="block w-full" type="text" name="breed" :value="old('breed')" placeholder="Ej. Golden Retriever" />
+                                <x-text-input id="breed" class="block w-full" type="text" name="breed" :value="old('breed')" required placeholder="Ej. Golden Retriever" />
                                 <x-input-error :messages="$errors->get('breed')" class="mt-2" />
                             </div>
 

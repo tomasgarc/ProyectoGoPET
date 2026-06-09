@@ -43,6 +43,7 @@ class AdminUserManagementTest extends TestCase
             'breed' => 'Golden Retriever',
             'age' => 3,
             'size' => 'grande',
+            'sex' => 'macho',
         ]);
 
         // 1. Check Index List

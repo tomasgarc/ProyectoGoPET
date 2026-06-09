@@ -33,10 +33,10 @@ class DogController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'breed' => 'nullable|string|max:255',
+            'breed' => 'required|string|max:255',
             'age' => 'nullable|integer',
-            'size' => 'nullable|string|max:255',
-            'sex' => 'nullable|string|in:macho,hembra',
+            'size' => 'required|string|max:255',
+            'sex' => 'required|string|in:macho,hembra',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -75,10 +75,10 @@ class DogController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'breed' => 'nullable|string|max:255',
+            'breed' => 'required|string|max:255',
             'age' => 'nullable|integer',
-            'size' => 'nullable|string|max:255',
-            'sex' => 'nullable|string|in:macho,hembra',
+            'size' => 'required|string|max:255',
+            'sex' => 'required|string|in:macho,hembra',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
